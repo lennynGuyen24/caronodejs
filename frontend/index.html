@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Cờ Caro Online</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script> <!-- Hiệu ứng pháo hoa -->
+</head>
+<body>
+  <div style="text-align: center;">
+    <h2 id="status">Bạn là: </h2>
+    <button id="join-btn">Tham gia chơi</button>
+    <p id="player-status">Chưa có người chơi nào tham gia.</p>
+    <h3 id="timer">Thời gian: 20 giây</h3>
+  </div>
+  <div class="board" id="board"></div>
+  <button id="reset-btn">Chơi lại</button>
+
+  <script src="script.js"></script>
+</body>
+</html>

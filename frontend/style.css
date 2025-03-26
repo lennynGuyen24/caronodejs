@@ -1,0 +1,42 @@
+.board {
+  display: grid;
+  grid-template-columns: repeat(20, 30px);
+  gap: 1px;
+  width: fit-content;
+  margin: 20px auto;
+  background-color: #555;
+}
+
+.cell {
+  width: 30px;
+  height: 30px;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Arial;
+  cursor: pointer;
+}
+
+.cell:hover { background-color: #eaeaea; }
+
+#status, #reset-btn {
+  text-align: center;
+  display: block;
+  margin: 15px auto;
+}
+
+#join-btn {
+  padding: 8px 16px;
+  cursor: pointer;
+  margin: 10px auto;
+  display: block;
+}
+
+#player-status {
+  font-size: 14px;
+  color: #333;
+  margin-top: 10px;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
