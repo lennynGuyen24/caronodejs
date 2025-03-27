@@ -11,11 +11,13 @@
   width: 30px;
   height: 30px;
   background-color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 20px;
+  font-family: Arial, sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: Arial;
-  cursor: pointer;
 }
 
 .cell:hover { background-color: #eaeaea; }

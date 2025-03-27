@@ -103,7 +103,11 @@ gameOver = false;
 
 socket.on('moveMade', ({ x, y, symbol }) => {
   const cell = document.querySelector(`.cell[data-x='${x}'][data-y='${y}']`);
+  
+  // Thêm màu sắc theo symbol (X hoặc O)
   cell.textContent = symbol;
+  cell.style.color = symbol === 'X' ? 'green' : 'red';
+
   currentPlayer = symbol === 'X' ? 'O' : 'X';
   status.textContent = `Bạn là: ${playerSymbol}. Lượt chơi: ${currentPlayer}`;
 });
