@@ -20,10 +20,11 @@ let players = {};
 io.on('connection', (socket) => {
   socket.emit('init', { boardData, currentPlayer, gameStarted, players });
 
-  socket.on('playerReady', () => {
-    if (!readyPlayers.includes(socket.id)) {
+  socket.on('playerReady', (name) => {
+    if (!readyPlayers.includes(socket.id) && Object.keys(players).length < 2) {
       readyPlayers.push(socket.id);
-      players[socket.id] = readyPlayers.length === 1 ? 'X' : 'O';
+      const symbol = readyPlayers.length === 1 ? 'X' : 'O';
+      players[socket.id] = { symbol, name };
     }
 
     io.emit('updatePlayers', players);
@@ -37,6 +38,13 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Thêm sự kiện chat
+  socket.on('sendMessage', (msg) => {
+    const player = players[socket.id];
+    if (player) {
+      io.emit('newMessage', { name: player.name, msg });
+    }
+  });
   
   socket.on('playerMove', ({ x, y }) => {
     if (!gameStarted || boardData[y][x] !== '') return;

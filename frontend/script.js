@@ -6,7 +6,9 @@ const resetBtn = document.getElementById('reset-btn');
 const timerDisplay = document.getElementById('timer');
 const joinBtn = document.getElementById('join-btn');
 const playerStatus = document.getElementById('player-status');
-
+const playerNameInput = document.getElementById('player-name');
+const chatWindow = document.getElementById('chat-window');
+const chatInput = document.getElementById('chat-input');
 
 let playerSymbol = '';
 let currentPlayer = '';
@@ -37,6 +39,14 @@ function handleClick(e) {
 }
 
 function updatePlayerStatus(players) {
+  const playerInfo = Object.values(players).map(p => `${p.name} (${p.symbol})`);
+  playerStatus.textContent = playerInfo.length
+    ? `Người chơi đã tham gia: ${playerInfo.join(', ')}`
+    : 'Chưa có người chơi nào tham gia.';
+}
+
+/*
+function updatePlayerStatus(players) {
     let statuses = [];
     for (const [id, symbol] of Object.entries(players)) {
       statuses.push(symbol);
@@ -45,6 +55,7 @@ function updatePlayerStatus(players) {
       ? `Người chơi đã tham gia: ${statuses.join(', ')}`
       : 'Chưa có người chơi nào tham gia.';
 }
+*/
 
 function showFireworks() {
   var duration = 5 * 1000; // 5 giây
@@ -73,33 +84,59 @@ function showFireworks() {
 
 
 joinBtn.onclick = () => {
-    socket.emit('playerReady');
-    joinBtn.disabled = true;
+  const playerName = playerNameInput.value.trim();
+  if (!playerName) {
+    alert("Vui lòng nhập tên trước khi tham gia!");
+    return;
+  }
+  socket.emit('playerReady', playerName);
+  joinBtn.disabled = true;
+  playerNameInput.disabled = true;
 };
 
-
 socket.on('init', (data) => {
-    createBoard(data.boardData);
-    currentPlayer = data.currentPlayer;
-    playerSymbol = data.players[socket.id] || '';
-    status.textContent = `Bạn là: ${playerSymbol || '?'}`;
-    joinBtn.disabled = data.gameStarted || playerSymbol;
-    updatePlayerStatus(data.players);
+  createBoard(data.boardData);
+  currentPlayer = data.currentPlayer;
+  playerSymbol = data.players[socket.id]?.symbol || '';
+  const playerName = data.players[socket.id]?.name || '?';
+  status.textContent = `Bạn (${playerName}) là: ${playerSymbol || '?'}`;
+  updatePlayerStatus(data.players);
 });
-
 
 socket.on('updatePlayers', (players) => {
-    playerSymbol = players[socket.id] || playerSymbol;
-    updatePlayerStatus(players);
+  const player = players[socket.id];
+  if (player) {
+    playerSymbol = player.symbol;
+    status.textContent = `Bạn (${player.name}) là: ${playerSymbol}`;
+  }
+  updatePlayerStatus(players);
 });
+
   
 
 socket.on('gameStart', ({ currentPlayer: turnPlayer, players }) => {
-currentPlayer = turnPlayer;
-playerSymbol = players[socket.id];
-status.textContent = `Bạn là: ${playerSymbol}. Lượt chơi: ${currentPlayer}`;
-gameOver = false;
+  currentPlayer = turnPlayer;
+  const player = players[socket.id];
+  playerSymbol = player.symbol;
+  status.textContent = `Bạn (${player.name}) là: ${playerSymbol}. Lượt chơi: ${currentPlayer}`;
+  gameOver = false;
 });
+
+// Xử lý chat
+chatInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter' && chatInput.value.trim() !== '') {
+    socket.emit('sendMessage', chatInput.value.trim());
+    chatInput.value = '';
+  }
+});
+
+socket.on('newMessage', ({ name, msg }) => {
+  const newMsg = document.createElement('div');
+  newMsg.textContent = `${name}: ${msg}`;
+  chatWindow.appendChild(newMsg);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+});
+
 
 socket.on('moveMade', ({ x, y, symbol }) => {
   const cell = document.querySelector(`.cell[data-x='${x}'][data-y='${y}']`);
@@ -132,15 +169,17 @@ socket.on('changeTurn', ({ currentPlayer: nextPlayer }) => {
   status.textContent = `Bạn là: ${playerSymbol}. Lượt chơi: ${currentPlayer}`;
 });
 
-socket.on('resetGame', ({ boardData, players }) => {
-    createBoard(boardData);
-    playerSymbol = '';
-    currentPlayer = 'X';
-    gameOver = false;
-    joinBtn.disabled = false;
-    status.textContent = `Bạn là: ?`;
-    playerStatus.textContent = 'Chưa có người chơi nào tham gia.';
-    timerDisplay.textContent = 'Thời gian: 20 giây';
+socket.on('resetGame', ({ boardData }) => {
+  createBoard(boardData);
+  playerSymbol = '';
+  currentPlayer = 'X';
+  gameOver = false;
+  joinBtn.disabled = false;
+  playerNameInput.disabled = false;
+  playerNameInput.value = '';
+  status.textContent = `Bạn là: ?`;
+  playerStatus.textContent = 'Chưa có người chơi nào tham gia.';
+  chatWindow.innerHTML = '';
 });
 
 resetBtn.onclick = () => {

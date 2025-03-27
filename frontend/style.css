@@ -1,9 +1,22 @@
-.board {
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#game-container {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 20px; /* khoảng cách giữa bàn cờ và chat */
+}
+
+#board {
   display: grid;
   grid-template-columns: repeat(20, 30px);
   gap: 1px;
-  width: fit-content;
-  margin: 20px auto;
   background-color: #555;
 }
 
@@ -11,13 +24,35 @@
   width: 30px;
   height: 30px;
   background-color: #fff;
-  cursor: pointer;
-  font-weight:normal ;
-  font-size: 20px;
-  font-family: Arial, sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+#chat-container {
+  display: flex;
+  flex-direction: column;
+  width: 300px;
+  height: 611px; /* tương tự chiều cao bàn cờ */
+  border: 1px solid #ccc;
+}
+
+#chat-window {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  background-color: #f9f9f9;
+  text-align: left; /* Căn lề trái nội dung chat */
+}
+
+#chat-input {
+  border: none;
+  border-top: 1px solid #ccc;
+  padding: 10px;
+  font-size: 14px;
 }
 
 .cell:hover { background-color: #eaeaea; }
@@ -26,6 +61,11 @@
   text-align: center;
   display: block;
   margin: 15px auto;
+}
+
+#player-name {
+  padding: 8px;
+  margin-bottom: 10px;
 }
 
 #join-btn {
