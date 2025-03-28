@@ -22,7 +22,7 @@ npm init -y
 npm install express socket.io
 node index.js
 
-### 2. Error fix
+#### 2. Error fix
 Error: npm : File C:\Program Files\nodejs\npm.ps1 cannot be loaded because running scripts is disabled on this system. 
 Lỗi này xảy ra vì PowerShell đang được cài đặt chính sách bảo mật ngăn chặn chạy script từ bên ngoài (Execution Policy).
 powershell

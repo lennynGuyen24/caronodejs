@@ -125,18 +125,37 @@ socket.on('gameStart', ({ currentPlayer: turnPlayer, players }) => {
 // Xử lý chat
 chatInput.addEventListener('keypress', (e) => {
   if (e.key === 'Enter' && chatInput.value.trim() !== '') {
-    socket.emit('sendMessage', chatInput.value.trim());
+    socket.emit('chatMessage', chatInput.value.trim());
     chatInput.value = '';
   }
 });
 
+socket.on('chatMessage', ({ name, symbol, msg }) => {
+  const msgEl = document.createElement('div');
+  msgEl.classList.add('chat-message');
+
+  const userSpan = document.createElement('span');
+  userSpan.textContent = `${name}[${symbol}] `;
+  userSpan.classList.add(`username-${symbol}`);
+
+  const contentSpan = document.createElement('span');
+  contentSpan.textContent = msg;
+
+  msgEl.appendChild(userSpan);
+  msgEl.appendChild(contentSpan);
+  chatWindow.appendChild(msgEl);
+
+  chatWindow.scrollTop = chatBox.scrollHeight;
+});
+
+  /*
 socket.on('newMessage', ({ name, msg }) => {
   const newMsg = document.createElement('div');
   newMsg.textContent = `${name}: ${msg}`;
   chatWindow.appendChild(newMsg);
   chatWindow.scrollTop = chatWindow.scrollHeight;
 });
-
+*/
 
 socket.on('moveMade', ({ x, y, symbol }) => {
   const cell = document.querySelector(`.cell[data-x='${x}'][data-y='${y}']`);
@@ -153,7 +172,7 @@ socket.on('gameOver', ({ winner }) => {
     status.textContent = winner === playerSymbol ? 'Bạn thắng 🎉!' : 'Bạn thua 😢!';
     gameOver = true;
     joinBtn.disabled = false;
-    playerStatus.textContent = 'Chưa có người chơi nào tham gia.';
+    playerStatus.textContent = 'Lượt chơi đã kết thúc.';
   
     if (winner === playerSymbol) {
       showFireworks(); // Gọi hàm pháo hoa nếu thắng
@@ -179,6 +198,7 @@ socket.on('resetGame', ({ boardData }) => {
   playerNameInput.value = '';
   status.textContent = `Bạn là: ?`;
   playerStatus.textContent = 'Chưa có người chơi nào tham gia.';
+  timerDisplay.textContent = 'Thời gian: 20 giây'
   chatWindow.innerHTML = '';
 });
 

@@ -15,7 +15,19 @@ let readyPlayers = [];
 let gameStarted = false;
 let players = {};
 
+/*
+(1) Kết nối ban đầu:
+Người chơi truy cập web game.
+Frontend gửi yêu cầu kết nối đến backend (socket.io).
+Server chấp nhận kết nối:
+Server tạo dữ liệu bàn cờ mặc định (20x20 ô).
+Server gửi thông tin trạng thái ban đầu (trạng thái bàn cờ, lượt người chơi) qua sự kiện init.
 
+Người chơi 1 ──┐
+                ├── Kết nối Socket.io ──▶ Server
+Người chơi 2 ──┘
+
+*/
 
 io.on('connection', (socket) => {
   socket.emit('init', { boardData, currentPlayer, gameStarted, players });
@@ -39,10 +51,10 @@ io.on('connection', (socket) => {
   });
 
   // Thêm sự kiện chat
-  socket.on('sendMessage', (msg) => {
+  socket.on('chatMessage', (msg) => {
     const player = players[socket.id];
     if (player) {
-      io.emit('newMessage', { name: player.name, msg });
+      io.emit('chatMessage', { name: player.name, symbol: player.symbol, msg });
     }
   });
   
