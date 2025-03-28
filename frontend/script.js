@@ -37,7 +37,15 @@ function handleClick(e) {
   const y = parseInt(e.target.dataset.y);
   socket.emit('playerMove', { x, y });
 }
-
+/*
+Ví dụ hiển thị trạng thái tham gia:
+Khi chưa ai tham gia:
+  Chưa có người chơi nào tham gia.
+Khi người đầu tiên nhấn nút "Tham gia chơi":
+  Người chơi đã tham gia: X
+Khi người thứ hai nhấn nút "Tham gia chơi":
+  Người chơi đã tham gia: X, O
+*/
 function updatePlayerStatus(players) {
   const playerInfo = Object.values(players).map(p => `${p.name} (${p.symbol})`);
   playerStatus.textContent = playerInfo.length
@@ -46,17 +54,9 @@ function updatePlayerStatus(players) {
 }
 
 /*
-function updatePlayerStatus(players) {
-    let statuses = [];
-    for (const [id, symbol] of Object.entries(players)) {
-      statuses.push(symbol);
-    }
-    playerStatus.textContent = statuses.length
-      ? `Người chơi đã tham gia: ${statuses.join(', ')}`
-      : 'Chưa có người chơi nào tham gia.';
-}
+Khi một người chơi chiến thắng, hiệu ứng pháo hoa sẽ xuất hiện trên màn hình người thắng, kéo dài trong 5 giây.
+Người thua sẽ không thấy hiệu ứng này.
 */
-
 function showFireworks() {
   var duration = 5 * 1000; // 5 giây
   var animationEnd = Date.now() + duration;
@@ -135,27 +135,24 @@ socket.on('chatMessage', ({ name, symbol, msg }) => {
   msgEl.classList.add('chat-message');
 
   const userSpan = document.createElement('span');
-  userSpan.textContent = `${name}[${symbol}] `;
+  userSpan.textContent = `[${symbol}] `;
   userSpan.classList.add(`username-${symbol}`);
+
+  const nameSpan = document.createElement('span');
+  nameSpan.textContent = name + ':';
+  nameSpan.classList.add('chat-name');
 
   const contentSpan = document.createElement('span');
   contentSpan.textContent = msg;
 
   msgEl.appendChild(userSpan);
+  msgEl.appendChild(nameSpan);
   msgEl.appendChild(contentSpan);
   chatWindow.appendChild(msgEl);
 
   chatWindow.scrollTop = chatBox.scrollHeight;
 });
 
-  /*
-socket.on('newMessage', ({ name, msg }) => {
-  const newMsg = document.createElement('div');
-  newMsg.textContent = `${name}: ${msg}`;
-  chatWindow.appendChild(newMsg);
-  chatWindow.scrollTop = chatWindow.scrollHeight;
-});
-*/
 
 socket.on('moveMade', ({ x, y, symbol }) => {
   const cell = document.querySelector(`.cell[data-x='${x}'][data-y='${y}']`);
@@ -188,6 +185,15 @@ socket.on('changeTurn', ({ currentPlayer: nextPlayer }) => {
   status.textContent = `Bạn là: ${playerSymbol}. Lượt chơi: ${currentPlayer}`;
 });
 
+/*
+Game kết thúc (có người thắng, pháo hoa hiện lên).
+Sau khi người chơi thắng, khi bấm nút "Chơi lại", bàn cờ sẽ reset và yêu cầu cả hai người chơi phải bấm lại nút "Tham gia chơi" để bắt đầu ván mới. 
+Bấm nút "Chơi lại", cả bàn cờ và trạng thái reset hoàn toàn.
+Màn hình trở về trạng thái ban đầu:
+Nút "Tham gia chơi" hiện lên.
+Trạng thái người chơi là trống (Bạn là: ?).
+Yêu cầu cả hai người chơi phải nhấn lại "Tham gia chơi" để bắt đầu ván mới.
+ */
 socket.on('resetGame', ({ boardData }) => {
   createBoard(boardData);
   playerSymbol = '';

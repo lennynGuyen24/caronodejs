@@ -58,6 +58,28 @@ io.on('connection', (socket) => {
     }
   });
   
+
+  /*
+   (2) Quá trình chơi
+  Người chơi click vào ô cờ, Frontend gửi tọa độ (x, y) lên Server qua sự kiện playerMove.
+  Server nhận tọa độ, kiểm tra ô hợp lệ hay không (đã đánh chưa, đúng lượt hay chưa):
+  Nếu hợp lệ: cập nhật trạng thái bàn cờ, kiểm tra thắng/thua/hòa.
+  Server gửi lại kết quả lượt đánh (moveMade) cho tất cả người chơi.
+  Frontend hiển thị quân cờ vừa đánh.
+      Frontend          Server           Frontend
+     (Player 1)         │               (Player 2)
+        │               │                  │
+    Click ô (x,y) ───▶  │                  │
+                        │ kiểm tra hợp lệ  │
+                        │ kiểm tra thắng?  │
+                        │ cập nhật bàn cờ  │
+                        │─────────────────▶│
+                        │ gửi moveMade     │
+                        │─────────────────▶│
+    Hiển thị kết quả ◀──│                  │
+                        │◀─────────────────│ Hiển thị kết quả
+
+  */
   socket.on('playerMove', ({ x, y }) => {
     if (!gameStarted || boardData[y][x] !== '') return;
 
@@ -75,6 +97,16 @@ io.on('connection', (socket) => {
     }
   });
 
+/*
+Reset game (Chơi lại)
+Người chơi click nút “Chơi lại”.
+Frontend gửi sự kiện resetGame tới server.
+Server reset bàn cờ, trạng thái về ban đầu.
+Server gửi trạng thái mới về cho tất cả người chơi.
+  Frontend ──▶ gửi resetGame ──▶ Server reset bàn cờ
+                                  └───▶ Frontend reset giao diện
+
+  */
   socket.on('resetGame', () => {
     clearInterval(timer);
     gameStarted = false;
@@ -94,6 +126,14 @@ io.on('connection', (socket) => {
   });
 }); //End of io.on('connection', (socket)
 
+/* 
+Workflow của tính năng Timer:
+Mỗi lượt người chơi có 20 giây.
+Server quản lý timer và gửi thông báo về thời gian còn lại mỗi giây.
+Nếu hết 20 giây mà người chơi chưa đi, server tự động chuyển lượt và thông báo cho cả hai người chơi.
+Frontend hiển thị rõ ràng thời gian còn lại mỗi lượt chơi.
+*/
+
 function startTurnTimer() {
   clearInterval(timer);
   let timeLeft = turnTime;
@@ -111,7 +151,20 @@ function startTurnTimer() {
     }
   }, 1000);
 }
+/*
+Kiểm tra điều kiện thắng
+Server sau mỗi lượt đánh sẽ kiểm tra thắng/thua bằng cách:
+Kiểm tra theo 4 hướng (ngang, dọc, chéo chính, chéo phụ).
+Nếu đủ 5 quân liên tiếp => có người chiến thắng.
+Khi thắng/thua xảy ra:
+Server gửi sự kiện gameOver kèm người chiến thắng cho cả 2 người.
+Frontend hiển thị thông báo người thắng.
 
+  Player 1 đánh ô ──▶ Server kiểm tra thắng
+                      ├─── Thắng ──▶ Gửi “gameOver”
+                      └─── Chưa thắng ──▶ Tiếp tục chơi
+
+*/
 function checkWin(x, y) {
   const symbol = boardData[y][x];
   return (

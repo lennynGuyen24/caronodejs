@@ -35,6 +35,13 @@ body {
   font-size: 14px
 }
 
+.chat-name {
+  color: blue;
+  font-weight: 100;
+  font-style: italic;
+  margin-right: 5px;
+}
+
 #game-container {
   display: flex;
   justify-content: center;
