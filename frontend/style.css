@@ -6,6 +6,15 @@ body {
   justify-content: center;
 }
 
+.board {
+  display: grid;
+  grid-template-columns: repeat(20, 30px);
+  gap: 1px;
+  width: fit-content;
+  margin: 20px auto;
+  background-color: #555;
+}
+
 .cell {
   width: 30px;
   height: 30px;
@@ -17,6 +26,8 @@ body {
   cursor: pointer;
   font-weight: bold;
 }
+
+.cell:hover { background-color: #eaeaea; }
 
 .chat-message {
   padding: 5px;
@@ -42,6 +53,12 @@ body {
   margin-right: 5px;
 }
 
+#player-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10px;
+}
 #game-container {
   display: flex;
   justify-content: center;
@@ -49,12 +66,14 @@ body {
   gap: 20px; /* khoảng cách giữa bàn cờ và chat */
 }
 
+/*
 #board {
   display: grid;
   grid-template-columns: repeat(20, 30px);
   gap: 1px;
   background-color: #555;
 }
+*/
 
 #chat-container {
   display: flex;
@@ -88,15 +107,15 @@ body {
 }
 
 #player-name {
-  padding: 8px;
-  margin-bottom: 10px;
+  flex: 1;
+  padding: 6px;
+  font-size: 14px;
 }
 
 #join-btn {
-  padding: 8px 16px;
+  padding: 6px 12px;
+  margin-left: 5px;
   cursor: pointer;
-  margin: 10px auto;
-  display: block;
 }
 
 #player-status {
