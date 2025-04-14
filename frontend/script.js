@@ -29,6 +29,8 @@ fetch('/server-info')
     //setupSocketEvents();
   })
   .catch((err) => {
+    // Xử lý lỗi nếu không thể lấy IP server
+    socket = io('http://localhost:3000');
     console.error('Lỗi lấy IP server:', err);
   });
 
