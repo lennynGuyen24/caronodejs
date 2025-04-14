@@ -19,7 +19,7 @@ let joined = false;
 fetch('/server-info')
   .then(res => res.json())
   .then(({ ip, port }) => {
-    socket = io(`http://${ip}:${port}`); // 👈 gán giá trị
+    socket = io(`http://${ip}:${port}`); // 👈 give a value
 
     socket.on('connect', () => {
       console.log('Server connected successfully!');
