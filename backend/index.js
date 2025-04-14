@@ -12,9 +12,10 @@ const io = require('socket.io')(http, { cors: { origin: "*" } });
 app.use(cors());
 app.use(express.static(__dirname + '/../frontend'));
 
-// Lấy địa chỉ IP của server
+// Take the IP address of the server
 // Hàm này sẽ tìm địa chỉ IP của server trong mạng nội bộ
-// Nếu không tìm thấy, nó sẽ trả về 'localhost'
+// This function will find the IP address of the server in LAN 
+// If not found, return 'localhost'.
 function getServerIp() {
   const interfaces = os.networkInterfaces();
   for (let name in interfaces) {
@@ -26,7 +27,8 @@ function getServerIp() {
   }
   return 'localhost';
 }
-// Trả IP server cho client
+
+//Return IP server to client
 app.get('/server-info', (req, res) => {
   const ip = getServerIp();
   res.json({ ip, port: PORT }); // 👈 Đây là JSON hợp lệ
@@ -76,7 +78,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Thêm sự kiện chat
+  // Adding chat events
   socket.on('chatMessage', (msg) => {
     const player = players[socket.id];
     if (player) {
@@ -124,7 +126,7 @@ io.on('connection', (socket) => {
   });
 
 /*
-Reset game (Chơi lại)
+Reset game
 Người chơi click nút “Chơi lại”.
 Frontend gửi sự kiện resetGame tới server.
 Server reset bàn cờ, trạng thái về ban đầu.
