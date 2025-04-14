@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>Cờ Caro Online</title>
+  <title>Tic-Tac-Toe</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script> <!-- Hiệu ứng pháo hoa -->
@@ -10,24 +10,24 @@
 <body>
   <div style="text-align:center;">
       <div id="player-container">
-        <input type="text" id="player-name" placeholder="Nhập tên của bạn">
-        <button id="join-btn">Tham gia chơi</button>
+        <input type="text" id="player-name" placeholder="Type your name">
+        <button id="join-btn">Join Game</button>
       </div>
-      <h2 id="status">Bạn là: ?</h2>
-      <p id="player-status">Chưa có người chơi nào tham gia.</p>
-      <h3 id="timer">Thời gian: 20 giây</h3>
+      <h2 id="status">Your name: ?</h2>
+      <p id="player-status">Waiting for players to join...</p>
+      <h3 id="timer">Time: 20 seconds</h3>
   </div>
   
   <div style="display:flex; text-align:center;">
     <div  class="board" id="board"></div>
   
-    <!-- Khung chat -->
+    <!--Conversation chatting -->
     <div id="chat-container" style="margin-left:20px; width:300px; display:flex; flex-direction:column;">
       <div id="chat-window" style="flex:1; border:1px solid #ccc; padding:10px; overflow:auto; height:600px;"></div>
-      <input id="chat-input" placeholder="Nhập tin nhắn và nhấn Enter" style="padding:8px; margin-top:5px;">
+      <input id="chat-input" placeholder="Type the message and hit Enter" style="padding:8px; margin-top:5px;">
     </div>
   </div>
-  <button id="reset-btn">Chơi lại</button>
+  <button id="reset-btn">Play Again</button>
 
   <script src="script.js"></script>
 </body>
