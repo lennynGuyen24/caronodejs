@@ -22,11 +22,13 @@ fetch('/server-info')
     socket = io(`http://${ip}:${port}`); // 👈 gán giá trị
 
     socket.on('connect', () => {
-      console.log('Đã kết nối tới server');
+      console.log('Server connected successfully!');
     });
 
-    // Gọi các hàm socket.on(...) ở đây hoặc gọi hàm khởi tạo riêng
+  
+    // Call the socekt.on(...) functions here or call the init function separately
     //setupSocketEvents();
+  
  
 
     function createBoard(boardData) {
@@ -47,16 +49,16 @@ fetch('/server-info')
     function updatePlayerStatus(players) {
       const playerInfo = Object.values(players).map(p => `${p.name} (${p.symbol})`);
       playerStatus.textContent = playerInfo.length
-        ? `Người chơi đã tham gia: ${playerInfo.join(', ')}`
-        : 'Chưa có người chơi nào tham gia.';
+        ? `Player has joined: ${playerInfo.join(', ')}`
+        : 'Waiting for players to join...';
     }
 
     /*
-    Khi một người chơi chiến thắng, hiệu ứng pháo hoa sẽ xuất hiện trên màn hình người thắng, kéo dài trong 5 giây.
-    Người thua sẽ không thấy hiệu ứng này.
+    When player wins, the fireworks effect will appear on the winner's screen for 5 seconds.
+    Loser will not see this effect.
     */
     function showFireworks() {
-      var duration = 5 * 1000; // 5 giây
+      var duration = 5 * 1000; // 5 seconds
       var animationEnd = Date.now() + duration;
       var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 9999 };
 
@@ -91,7 +93,7 @@ fetch('/server-info')
     joinBtn.onclick = () => {
       const playerName = playerNameInput.value.trim();
       if (!playerName) {
-        alert("Vui lòng nhập tên trước khi tham gia!");
+        alert("Please enter your name before joining!");
         return;
       }
       socket.emit('playerReady', playerName);
@@ -104,7 +106,7 @@ fetch('/server-info')
       currentPlayer = data.currentPlayer;
       playerSymbol = data.players[socket.id]?.symbol || '';
       const playerName = data.players[socket.id]?.name || '?';
-      status.textContent = `Bạn (${playerName}) là: ${playerSymbol || '?'}`;
+      status.textContent = `(${playerName}) is: ${playerSymbol || '?'}`;
       updatePlayerStatus(data.players);
     });
 
@@ -112,7 +114,7 @@ fetch('/server-info')
       const player = players[socket.id];
       if (player) {
         playerSymbol = player.symbol;
-        status.textContent = `Bạn (${player.name}) là: ${playerSymbol}`;
+        status.textContent = `(${player.name}) is: ${playerSymbol}`;
       }
       updatePlayerStatus(players);
     });
@@ -121,7 +123,7 @@ fetch('/server-info')
       currentPlayer = turnPlayer;
       const player = players[socket.id];
       playerSymbol = player.symbol;
-      status.textContent = `Bạn (${player.name}) là: ${playerSymbol}. Lượt chơi: ${currentPlayer}`;
+      status.textContent = `You are: ${playerSymbol}. Turn: ${currentPlayer}`;
       gameOver = false;
     });
 
@@ -163,32 +165,32 @@ fetch('/server-info')
     socket.on('moveMade', ({ x, y, symbol }) => {
       const cell = document.querySelector(`.cell[data-x='${x}'][data-y='${y}']`);
       
-      // Thêm màu sắc theo symbol (X hoặc O)
+      // Adding colors following symbol (X or O)
       cell.textContent = symbol;
       cell.style.color = symbol === 'X' ? 'green' : 'red';
 
       currentPlayer = symbol === 'X' ? 'O' : 'X';
-      status.textContent = `Bạn là: ${playerSymbol}. Lượt chơi: ${currentPlayer}`;
+      status.textContent = `You are: ${playerSymbol}. Turn: ${currentPlayer}`;
     });
 
     socket.on('gameOver', ({ winner }) => {
-        status.textContent = winner === playerSymbol ? 'Bạn thắng 🎉!' : 'Bạn thua 😢!';
+        status.textContent = winner === playerSymbol ? 'Congratulation! You win 🎉!' : 'You lose 😢!';
         gameOver = true;
         joinBtn.disabled = false;
-        playerStatus.textContent = 'Lượt chơi đã kết thúc.';
+        playerStatus.textContent = 'Your turn is done.';
       
         if (winner === playerSymbol) {
-          showFireworks(); // Gọi hàm pháo hoa nếu thắng
+          showFireworks(); // Call the fireworks function when the game is over.
         }
     });
 
     socket.on('timerUpdate', ({ currentPlayer: turnPlayer, timeLeft }) => {
-      timerDisplay.textContent = `Thời gian (${turnPlayer}): ${timeLeft} giây`;
+      timerDisplay.textContent = `Time (${turnPlayer}): ${timeLeft} seconds`;
     });
 
     socket.on('changeTurn', ({ currentPlayer: nextPlayer }) => {
       currentPlayer = nextPlayer;
-      status.textContent = `Bạn là: ${playerSymbol}. Lượt chơi: ${currentPlayer}`;
+      status.textContent = `You are: ${playerSymbol}. Turn: ${currentPlayer}`;
     });
 
     socket.on('resetGame', ({ boardData }) => {
@@ -199,9 +201,9 @@ fetch('/server-info')
       joinBtn.disabled = false;
       playerNameInput.disabled = false;
       playerNameInput.value = '';
-      status.textContent = `Bạn là: ?`;
-      playerStatus.textContent = 'Chưa có người chơi nào tham gia.';
-      timerDisplay.textContent = 'Thời gian: 20 giây'
+      status.textContent = `You are: ?`;
+      playerStatus.textContent = 'Waiting for players to join....';
+      timerDisplay.textContent = 'Time: 20 seconds';
       chatWindow.innerHTML = '';
     });
 
@@ -212,5 +214,5 @@ fetch('/server-info')
 })
 .catch((err) => {
   // Xử lý lỗi nếu không thể lấy IP server
- console.error('Lỗi lấy IP server:', err);
+ console.error('Error when identifying IP server:', err);
 });
