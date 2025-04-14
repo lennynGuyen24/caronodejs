@@ -1,4 +1,5 @@
-//const socket = io('http://localhost:3000'); // Địa chỉ IP của server thay đổi tùy theo get /server-info ở dòng 84
+//const socket = io('http://localhost:3000'); // Địa chỉ IP của server thay đổi tùy theo get /server-info ở dòng 19
+let socket;  // khai báo global biến socket để sử dụng trong các hàm khác
 
 const board = document.getElementById('board');
 const status = document.getElementById('status');
@@ -15,6 +16,23 @@ let currentPlayer = '';
 let gameOver = false;
 let joined = false;
 
+fetch('/server-info')
+  .then(res => res.json())
+  .then(({ ip, port }) => {
+    socket = io(`http://${ip}:${port}`); // 👈 gán giá trị
+
+    socket.on('connect', () => {
+      console.log('Đã kết nối tới server');
+    });
+
+    // Gọi các hàm socket.on(...) ở đây hoặc gọi hàm khởi tạo riêng
+    setupSocketEvents();
+  })
+  .catch((err) => {
+    console.error('Lỗi lấy IP server:', err);
+  });
+
+
 function createBoard(boardData) {
   board.innerHTML = '';
   for (let y = 0; y < 20; y++) {
@@ -28,14 +46,6 @@ function createBoard(boardData) {
       board.appendChild(cell);
     }
   }
-}
-
-function handleClick(e) {
-  if (gameOver || playerSymbol !== currentPlayer) return;
-
-  const x = parseInt(e.target.dataset.x);
-  const y = parseInt(e.target.dataset.y);
-  socket.emit('playerMove', { x, y });
 }
 
 function updatePlayerStatus(players) {
@@ -73,29 +83,7 @@ function showFireworks() {
   }, 250);
 }
 
-fetch('/server-info')
-  .then(res => {
-    if (!res.ok) {
-      throw new Error('Không lấy được dữ liệu từ server');
-    }
-    return res.json();
-  })
-  .then(({ ip, port }) => {
-    console.log('Kết nối tới server:', ip, port);
-    const socket = io(`http://${ip}:${port}`);
-    // ...
-  })
-  .catch(err => {
-    console.error('Lỗi lấy IP từ server:', err);
-  });
-
-  function handleClick(e) {
-    if (gameOver || playerSymbol !== currentPlayer) return;
-
-    const x = parseInt(e.target.dataset.x);
-    const y = parseInt(e.target.dataset.y);
-    socket.emit('playerMove', { x, y });
-  }
+function setupSocketEvents() {
 
   joinBtn.onclick = () => {
     const playerName = playerNameInput.value.trim();
@@ -107,6 +95,14 @@ fetch('/server-info')
     joinBtn.disabled = true;
     playerNameInput.disabled = true;
   };
+
+  function handleClick(e) {
+    if (gameOver || playerSymbol !== currentPlayer) return;
+
+    const x = parseInt(e.target.dataset.x);
+    const y = parseInt(e.target.dataset.y);
+    socket.emit('playerMove', { x, y });
+  }
 
   socket.on('init', (data) => {
     createBoard(data.boardData);
@@ -125,8 +121,6 @@ fetch('/server-info')
     }
     updatePlayerStatus(players);
   });
-
-    
 
   socket.on('gameStart', ({ currentPlayer: turnPlayer, players }) => {
     currentPlayer = turnPlayer;
@@ -202,20 +196,21 @@ socket.on('newMessage', ({ name, msg }) => {
     status.textContent = `Bạn là: ${playerSymbol}. Lượt chơi: ${currentPlayer}`;
   });
 
-socket.on('resetGame', ({ boardData }) => {
-  createBoard(boardData);
-  playerSymbol = '';
-  currentPlayer = 'X';
-  gameOver = false;
-  joinBtn.disabled = false;
-  playerNameInput.disabled = false;
-  playerNameInput.value = '';
-  status.textContent = `Bạn là: ?`;
-  playerStatus.textContent = 'Chưa có người chơi nào tham gia.';
-  timerDisplay.textContent = 'Thời gian: 20 giây'
-  chatWindow.innerHTML = '';
-});
+  socket.on('resetGame', ({ boardData }) => {
+    createBoard(boardData);
+    playerSymbol = '';
+    currentPlayer = 'X';
+    gameOver = false;
+    joinBtn.disabled = false;
+    playerNameInput.disabled = false;
+    playerNameInput.value = '';
+    status.textContent = `Bạn là: ?`;
+    playerStatus.textContent = 'Chưa có người chơi nào tham gia.';
+    timerDisplay.textContent = 'Thời gian: 20 giây'
+    chatWindow.innerHTML = '';
+  });
 
   resetBtn.onclick = () => {
       socket.emit('resetGame');
   };
+}

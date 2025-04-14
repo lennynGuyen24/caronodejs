@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
 const os = require('os'); // Thư viện để lấy thông tin hệ thống
-const PORT = 8080;// Thay đổi cổng nếu cần thiết
+const PORT = 3000;// Thay đổi cổng nếu cần thiết
 
 
 const cors = require('cors');
