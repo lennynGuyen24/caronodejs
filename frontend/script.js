@@ -26,7 +26,7 @@ fetch('/server-info')
     });
 
     // Gọi các hàm socket.on(...) ở đây hoặc gọi hàm khởi tạo riêng
-    setupSocketEvents();
+    //setupSocketEvents();
   })
   .catch((err) => {
     console.error('Lỗi lấy IP server:', err);
@@ -83,7 +83,13 @@ function showFireworks() {
   }, 250);
 }
 
-function setupSocketEvents() {
+function handleClick(e) {
+  if (gameOver || playerSymbol !== currentPlayer) return;
+
+  const x = parseInt(e.target.dataset.x);
+  const y = parseInt(e.target.dataset.y);
+  socket.emit('playerMove', { x, y });
+}
 
   joinBtn.onclick = () => {
     const playerName = playerNameInput.value.trim();
@@ -95,14 +101,6 @@ function setupSocketEvents() {
     joinBtn.disabled = true;
     playerNameInput.disabled = true;
   };
-
-  function handleClick(e) {
-    if (gameOver || playerSymbol !== currentPlayer) return;
-
-    const x = parseInt(e.target.dataset.x);
-    const y = parseInt(e.target.dataset.y);
-    socket.emit('playerMove', { x, y });
-  }
 
   socket.on('init', (data) => {
     createBoard(data.boardData);
@@ -213,4 +211,3 @@ socket.on('newMessage', ({ name, msg }) => {
   resetBtn.onclick = () => {
       socket.emit('resetGame');
   };
-}
