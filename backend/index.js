@@ -13,7 +13,6 @@ app.use(cors());
 app.use(express.static(__dirname + '/../frontend'));
 
 // Take the IP address of the server
-// Hàm này sẽ tìm địa chỉ IP của server trong mạng nội bộ
 // This function will find the IP address of the server in the local network
 // If not found, return 'localhost'.
 function getServerIp() {
@@ -31,7 +30,7 @@ function getServerIp() {
 //Return IP server to client
 app.get('/server-info', (req, res) => {
   const ip = getServerIp();
-  res.json({ ip, port: PORT }); // 👈 Đây là JSON hợp lệ
+  res.json({ ip, port: PORT }); // 👈 This is the vid json
 });
 
 
