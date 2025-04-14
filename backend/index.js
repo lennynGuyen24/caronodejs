@@ -1,11 +1,37 @@
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
+const os = require('os'); // Thư viện để lấy thông tin hệ thống
+const PORT = 8080;// Thay đổi cổng nếu cần thiết
+
+
 const cors = require('cors');
 const io = require('socket.io')(http, { cors: { origin: "*" } });
 
+
 app.use(cors());
 app.use(express.static(__dirname + '/../frontend'));
+
+// Lấy địa chỉ IP của server
+// Hàm này sẽ tìm địa chỉ IP của server trong mạng nội bộ
+// Nếu không tìm thấy, nó sẽ trả về 'localhost'
+function getServerIp() {
+  const interfaces = os.networkInterfaces();
+  for (let name in interfaces) {
+    for (let iface of interfaces[name]) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  return 'localhost';
+}
+// Trả IP server cho client
+app.get('/server-info', (req, res) => {
+  const ip = getServerIp();
+  res.json({ ip, port: PORT }); // 👈 Đây là JSON hợp lệ
+});
+
 
 let boardData = Array(20).fill().map(() => Array(20).fill(''));
 let currentPlayer = 'X';
@@ -202,6 +228,7 @@ function valid(x, y) {
 }
 
 
-http.listen(3000, () => {
-  console.log('Server đang chạy tại http://localhost:3000');
+http.listen(PORT, () => {
+  const ip = getServerIp();
+  console.log(`🌐 Server running at: http://${ip}:${PORT}`);
 });
