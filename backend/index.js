@@ -14,7 +14,7 @@ app.use(express.static(__dirname + '/../frontend'));
 
 // Take the IP address of the server
 // Hàm này sẽ tìm địa chỉ IP của server trong mạng nội bộ
-// This function will find the IP address of the server in LAN 
+// This function will find the IP address of the server in the local network
 // If not found, return 'localhost'.
 function getServerIp() {
   const interfaces = os.networkInterfaces();
