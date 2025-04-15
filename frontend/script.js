@@ -208,6 +208,25 @@ fetch('/server-info')
       chatWindow.innerHTML = '';
     });
 
+    socket.on('roomList', (rooms) => {
+      const listEl = document.getElementById('room-list');
+      listEl.innerHTML = '';
+      rooms.forEach(room => {
+        const li = document.createElement('li');
+        li.textContent = `Phòng của ${room.hostName}`;
+        li.onclick = () => {
+          const name = document.getElementById('player-name').value;
+          socket.emit('joinRoom', { roomId: room.roomId, playerName: name });
+        };
+        listEl.appendChild(li);
+      });
+    });
+    
+    document.getElementById('create-room-btn').onclick = () => {
+      const name = document.getElementById('player-name').value;
+      socket.emit('createRoom', { playerName: name });
+    };
+
     resetBtn.onclick = () => {
         socket.emit('resetGame');
     };
