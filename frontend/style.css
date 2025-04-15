@@ -156,3 +156,23 @@ body {
   font-weight: 600;
   text-shadow: 1px 1px  10px #F28482;
 }
+
+#room-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px auto;
+  max-width: 400px;
+}
+
+#room-list li {
+  cursor: pointer;
+  margin: 5px 0;
+  padding: 8px;
+  background: #e0e0e0;
+  border-radius: 5px;
+  transition: background 0.3s;
+}
+
+#room-list li:hover {
+  background: #d0d0d0;
+}
