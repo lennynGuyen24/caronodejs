@@ -1,6 +1,9 @@
 //const socket = io('http://localhost:3000'); // Địa chỉ IP của server thay đổi tùy theo get /server-info ở dòng 19
 
-let socket;  // khai báo global biến socket để sử dụng trong các hàm khác
+let socket;  // 👈 khai báo trước
+let roomId = null;
+let currentTurn = '';
+let hasJoined = false;
 
 const board = document.getElementById('board');
 const status = document.getElementById('status');
@@ -11,6 +14,8 @@ const playerStatus = document.getElementById('player-status');
 const playerNameInput = document.getElementById('player-name');
 const chatWindow = document.getElementById('chat-window');
 const chatInput = document.getElementById('chat-input');
+const historyList = document.getElementById('history');
+const roomList = document.getElementById('room-list');
 
 let playerSymbol = '';
 let currentPlayer = '';
@@ -30,18 +35,22 @@ fetch('/server-info')
     // Call the socekt.on(...) functions here or call the init function separately
     //setupSocketEvents();
   
- 
-
-    function createBoard(boardData) {
+    
+    function renderBoard(data) {
       board.innerHTML = '';
       for (let y = 0; y < 20; y++) {
         for (let x = 0; x < 20; x++) {
           const cell = document.createElement('div');
-          cell.classList.add('cell');
+          cell.className = 'cell';
           cell.dataset.x = x;
           cell.dataset.y = y;
-          cell.textContent = boardData[y][x];
-          cell.addEventListener('click', handleClick);
+          cell.textContent = data[y][x];
+          cell.style.color = data[y][x] === 'X' ? 'green' : 'red';
+          cell.onclick = () => {
+            if (playerSymbol === currentTurn && cell.textContent === '') {
+              socket.emit('playerMove', { roomId, x, y });
+            }
+          };
           board.appendChild(cell);
         }
       }
@@ -88,22 +97,23 @@ fetch('/server-info')
 
       const x = parseInt(e.target.dataset.x);
       const y = parseInt(e.target.dataset.y);
-      socket.emit('playerMove', { x, y });
+      socket.emit('playerMove', { roomId, x, y });
     }
 
     joinBtn.onclick = () => {
       const playerName = playerNameInput.value.trim();
-      if (!playerName) {
+      if (!playerName|| hasJoined) {
         alert("Please enter your name before joining!");
         return;
       }
-      socket.emit('playerReady', playerName);
+      socket.emit('joinGame', { playerName });
       joinBtn.disabled = true;
+      hasJoined = true;
       playerNameInput.disabled = true;
     };
 
     socket.on('init', (data) => {
-      createBoard(data.boardData);
+      renderBoard(data.boardData);
       currentPlayer = data.currentPlayer;
       playerSymbol = data.players[socket.id]?.symbol || '';
       const playerName = data.players[socket.id]?.name || '?';
@@ -120,23 +130,17 @@ fetch('/server-info')
       updatePlayerStatus(players);
     });
 
-    socket.on('gameStart', ({ currentPlayer: turnPlayer, players }) => {
-      currentPlayer = turnPlayer;
-      const player = players[socket.id];
-      playerSymbol = player.symbol;
-      status.textContent = `You are: ${playerSymbol}. Turn: ${currentPlayer}`;
-      gameOver = false;
-    });
+    
 
     // Xử lý chat
     chatInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter' && chatInput.value.trim() !== '') {
-        socket.emit('chatMessage', chatInput.value.trim());
+      if (e.key === 'Enter' && chatInput.value.trim() !== '' && roomId) {
+        socket.emit('chatMessage', { roomId, name: playerNameInput.value, message, symbol: playerSymbol });
         chatInput.value = '';
       }
     });
 
-    socket.on('chatMessage', ({ name, symbol, msg }) => {
+    socket.on('chatMessage', ({ name, message, symbol }) => {
       const msgEl = document.createElement('div');
       msgEl.classList.add('chat-message');
 
@@ -151,27 +155,24 @@ fetch('/server-info')
     msgEl.appendChild(contentSpan);
     chatWindow.appendChild(msgEl);
 
-      chatWindow.scrollTop = chatBox.scrollHeight;
-    });
-
-    /*
-    socket.on('newMessage', ({ name, msg }) => {
-    const newMsg = document.createElement('div');
-    newMsg.textContent = `${name}: ${msg}`;
-    chatWindow.appendChild(newMsg);
     chatWindow.scrollTop = chatWindow.scrollHeight;
     });
-    */
+
+    socket.on('startGame', ({ board: boardData, players, currentTurn: turn }) => {
+      playerSymbol = players.find(p => p.id === socket.id)?.symbol;
+      currentTurn = turn;
+      status.textContent = `Bạn là ${playerSymbol}. Lượt chơi: ${currentTurn}`;
+      renderBoard(boardData);
+    });
 
     socket.on('moveMade', ({ x, y, symbol }) => {
       const cell = document.querySelector(`.cell[data-x='${x}'][data-y='${y}']`);
-      
-      // Adding colors following symbol (X or O)
-      cell.textContent = symbol;
-      cell.style.color = symbol === 'X' ? 'green' : 'red';
-
-      currentPlayer = symbol === 'X' ? 'O' : 'X';
-      status.textContent = `You are: ${playerSymbol}. Turn: ${currentPlayer}`;
+      if (cell) {
+        cell.textContent = symbol;
+        cell.style.color = symbol === 'X' ? 'green' : 'red';
+      }
+      currentTurn = symbol === 'X' ? 'O' : 'X';
+      status.textContent = `Lượt chơi: ${currentTurn}`;
     });
 
     socket.on('gameOver', ({ winner }) => {
@@ -184,18 +185,35 @@ fetch('/server-info')
           showFireworks(); // Call the fireworks function when the game is over.
         }
     });
+    
+    socket.on('playerLeft', () => {
+      alert('Người chơi kia đã thoát. Ván chơi kết thúc.');
+      board.innerHTML = '';
+      status.textContent = '';
+    });
+    
+    socket.on('winHistory', (history) => {
+      historyList.innerHTML = '<h4>Người thắng gần đây:</h4>' +
+        history.map(h => `<div>[${h.symbol}] ${h.name}</div>`).join('');
+    });
+    
 
     socket.on('timerUpdate', ({ currentPlayer: turnPlayer, timeLeft }) => {
       timerDisplay.textContent = `Time (${turnPlayer}): ${timeLeft} seconds`;
     });
 
+    socket.on('turnTimeout', ({ currentTurn: turn }) => {
+      currentTurn = turn;
+      status.textContent = `Lượt chơi: ${currentTurn}`;
+    });
+    
     socket.on('changeTurn', ({ currentPlayer: nextPlayer }) => {
       currentPlayer = nextPlayer;
       status.textContent = `You are: ${playerSymbol}. Turn: ${currentPlayer}`;
     });
 
     socket.on('resetGame', ({ boardData }) => {
-      createBoard(boardData);
+      renderBoard(boardData);
       playerSymbol = '';
       currentPlayer = 'X';
       gameOver = false;
@@ -208,27 +226,31 @@ fetch('/server-info')
       chatWindow.innerHTML = '';
     });
 
+    socket.on('roomCreated', (data) => {
+      roomId = data.roomId;
+      playerSymbol = 'X';
+      status.textContent = 'Đang chờ người khác tham gia...';
+    });
+
     socket.on('roomList', (rooms) => {
-      const listEl = document.getElementById('room-list');
-      listEl.innerHTML = '';
+      roomList.innerHTML = '';
       rooms.forEach(room => {
         const li = document.createElement('li');
         li.textContent = `Phòng của ${room.hostName}`;
         li.onclick = () => {
-          const name = document.getElementById('player-name').value;
+          const name = playerNameInput.value.trim();
+          if (!name || roomId === room.roomId) return;
           socket.emit('joinRoom', { roomId: room.roomId, playerName: name });
         };
-        listEl.appendChild(li);
+        roomList.appendChild(li);
       });
     });
     
-    document.getElementById('create-room-btn').onclick = () => {
-      const name = document.getElementById('player-name').value;
-      socket.emit('createRoom', { playerName: name });
-    };
-
-    resetBtn.onclick = () => {
-        socket.emit('resetGame');
+    
+       resetBtn.onclick = () => {
+      if (roomId) {
+        socket.emit('resetGame', { roomId });
+      }
     };
 
 })

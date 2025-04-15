@@ -10,27 +10,32 @@
 <body>
   <div style="text-align:center;">
       <div id="player-container">
-        <h2>Chọn phòng chơi</h2>
-        <ul id="room-list"></ul>
         <input type="text" id="player-name" placeholder="Type your name">
-        <button id="create-room-btn">Tạo ván mới</button>
         <button id="join-btn">Join Game</button>
       </div>
       <h2 id="status">Your name: ?</h2>
       <p id="player-status">Waiting for players to join...</p>
       <h3 id="timer">Time: 20 seconds</h3>
   </div>
-  
-  <div style="display:flex; text-align:center;">
+  <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 20px;">
+    <!-- Rooms -->
+    <div style="min-width: 200px;">
+      <h3>Danh sách phòng</h3>
+      <ul id="room-list"></ul>
+      <div id="history"></div>
+    </div>
+   <!-- Board -->
+  <div >
     <div  class="board" id="board"></div>
-  
+    <button id="reset-btn">Play Again</button>
+  </div>
     <!--Conversation chatting -->
     <div id="chat-container" style="margin-left:20px; width:300px; display:flex; flex-direction:column;">
       <div id="chat-window" style="flex:1; border:1px solid #ccc; padding:10px; overflow:auto; height:600px;"></div>
       <input id="chat-input" placeholder="Type the message and hit Enter" style="padding:8px;">
     </div>
   </div>
-  <button id="reset-btn">Play Again</button>
+
 
   <script src="script.js"></script>
 </body>

@@ -3,8 +3,6 @@ const app = express();
 const http = require('http').createServer(app);
 const os = require('os'); // Thư viện để lấy thông tin hệ thống
 const PORT = 3000;// Thay đổi cổng nếu cần thiết
-const rooms = {}; // { roomId: { players: [], board, currentTurn, started, timer, history } }
-let winHistory = []; // Global win history list
 
 
 const cors = require('cors');
@@ -44,6 +42,46 @@ let readyPlayers = [];
 let gameStarted = false;
 let players = {};
 
+const rooms = {}; // { roomId: { players: [], board, currentTurn, started, timer, history } }
+let winHistory = []; // Global win history list
+const playerRoomMap = {}; // socket.id -> roomId
+
+function generateRoomId() {
+  return Math.random().toString(36).substring(2, 8);
+}
+
+function updateRoomList() {
+  const availableRooms = Object.entries(rooms)
+    .filter(([_, room]) => room.players.length === 1 && !room.started)
+    .map(([id, room]) => ({ roomId: id, hostName: room.players[0].name }));
+  io.emit('roomList', availableRooms);
+}
+
+/* 
+Workflow của tính năng Timer:
+Mỗi lượt người chơi có 20 giây.
+Server quản lý timer và gửi thông báo về thời gian còn lại mỗi giây.
+Nếu hết 20 giây mà người chơi chưa đi, server tự động chuyển lượt và thông báo cho cả hai người chơi.
+Frontend hiển thị rõ ràng thời gian còn lại mỗi lượt chơi.
+*/
+
+function startTurnTimer(roomId) {
+  const room = rooms[roomId];
+  if (!room) return;
+  clearInterval(room.timer);
+  let timeLeft = 20;
+  room.timer = setInterval(() => {
+    timeLeft--;
+    io.to(roomId).emit('timerUpdate', { currentTurn: room.currentTurn, timeLeft });
+    if (timeLeft <= 0) {
+      room.currentTurn = room.currentTurn === 'X' ? 'O' : 'X';
+      io.to(roomId).emit('turnTimeout', { currentTurn: room.currentTurn });
+      startTurnTimer(roomId);
+    }
+  }, 1000);
+}
+
+
 /*
 (1) Kết nối ban đầu:
 Người chơi truy cập web game.
@@ -59,10 +97,12 @@ Người chơi 2 ──┘
 */
 
 io.on('connection', (socket) => {
-  socket.emit('init', { boardData, currentPlayer, gameStarted, players });
+  //socket.emit('init', { boardData, currentPlayer, gameStarted, players });
   socket.emit('winHistory', winHistory);
 
-  socket.on('createRoom', ({ playerName }) => {
+  socket.on('joinGame', ({ playerName }) => {
+    if (playerRoomMap[socket.id]) return; // Chỉ cho tạo 1 phòng
+
     const roomId = generateRoomId();
     rooms[roomId] = {
       players: [{ id: socket.id, name: playerName, symbol: 'X' }],
@@ -73,27 +113,11 @@ io.on('connection', (socket) => {
       history: []
     };
     socket.join(roomId);
+    playerRoomMap[socket.id] = roomId;
     socket.emit('roomCreated', { roomId });
-    updateRoomList();// Gửi danh sách phòng đang chờ tới tất cả client
-  }); 
-  
-  socket.on('playerReady', (name) => {
-    if (!readyPlayers.includes(socket.id) && Object.keys(players).length < 2) {
-      readyPlayers.push(socket.id);
-      const symbol = readyPlayers.length === 1 ? 'X' : 'O';
-      players[socket.id] = { symbol, name };
-    }
-
-    io.emit('updatePlayers', players);
-
-    if (readyPlayers.length === 2) {
-      gameStarted = true;
-      boardData = Array(20).fill().map(() => Array(20).fill(''));
-      currentPlayer = 'X';
-      io.emit('gameStart', { currentPlayer, players });
-      startTurnTimer();
-    }
+    updateRoomList();
   });
+
   /*
   Tạo phòng chơi mới
   Người chơi gửi yêu cầu tạo phòng mới với tên người chơi.
@@ -117,6 +141,25 @@ io.on('connection', (socket) => {
     socket.emit('roomCreated', { roomId });
     updateRoomList(); // Gửi danh sách phòng đang chờ tới tất cả client
   });
+  
+  socket.on('playerReady', (name) => {
+    if (!readyPlayers.includes(socket.id) && Object.keys(players).length < 2) {
+      readyPlayers.push(socket.id);
+      const symbol = readyPlayers.length === 1 ? 'X' : 'O';
+      players[socket.id] = { symbol, name };
+    }
+
+    io.emit('updatePlayers', players);
+
+    if (readyPlayers.length === 2) {
+      gameStarted = true;
+      boardData = Array(20).fill().map(() => Array(20).fill(''));
+      currentPlayer = 'X';
+      io.emit('gameStart', { currentPlayer, players });
+      startTurnTimer();
+    }
+  });
+  
  
   // Cập nhật danh sách phòng đang chờ
   function updateRoomList() {
@@ -139,34 +182,21 @@ io.on('connection', (socket) => {
       room.players.push({ id: socket.id, name: playerName, symbol: 'O' });
       room.started = true;
       socket.join(roomId);
-  
-      // Gửi dữ liệu khởi tạo cho cả 2 người
+      playerRoomMap[socket.id] = roomId;
+
       io.to(roomId).emit('startGame', {
         board: room.board,
         players: room.players,
         currentTurn: room.currentTurn
       });
-  
       updateRoomList();
+      startTurnTimer(roomId);
     } else {
-      socket.emit('joinFailed', 'Phòng không tồn tại hoặc đã đủ người.');
+      socket.emit('joinFailed');
     }
   });
   
-  // Adding chat events
-  /*
-  socket.on('chatMessage', (msg) => {
-    const player = players[socket.id];
-    if (player) {
-      io.emit('chatMessage', { name: player.name, symbol: player.symbol, msg });
-    }
-  });
-  */
-
-  socket.on('chatMessage', ({ roomId, name, message, symbol }) => {
-    io.to(roomId).emit('chatMessage', { name, message, symbol });
-  });
-
+  
   /*
    (2) Quá trình chơi
   Người chơi click vào ô cờ, Frontend gửi tọa độ (x, y) lên Server qua sự kiện playerMove.
@@ -188,24 +218,6 @@ io.on('connection', (socket) => {
                         │◀─────────────────│ Hiển thị kết quả
 
   */
-  /*
-  socket.on('playerMove', ({ x, y }) => {
-    if (!gameStarted || boardData[y][x] !== '') return;
-
-    boardData[y][x] = currentPlayer;
-    io.emit('moveMade', { x, y, symbol: currentPlayer });
-
-    if (checkWin(x, y)) {
-      io.emit('gameOver', { winner: currentPlayer });
-      clearInterval(timer);
-      gameStarted = false;
-      readyPlayers = [];
-    } else {
-      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-      startTurnTimer();
-    }
-  });
-*/
   socket.on('playerMove', ({ roomId, x, y }) => {
     const room = rooms[roomId];
     if (!room || room.board[y][x] !== '') return;
@@ -223,8 +235,6 @@ io.on('connection', (socket) => {
 
       io.to(roomId).emit('gameOver', { winner: symbol });
       clearInterval(room.timer);
-      delete rooms[roomId];
-      updateRoomList();
     } else {
       room.currentTurn = symbol === 'X' ? 'O' : 'X';
       startTurnTimer(roomId);
@@ -241,17 +251,7 @@ Server gửi trạng thái mới về cho tất cả người chơi.
                                   └───▶ Frontend reset giao diện
 
   */
-  /*
-  socket.on('resetGame', () => {
-    clearInterval(timer);
-    gameStarted = false;
-    readyPlayers = [];
-    players = {};
-    currentPlayer = 'X';
-    boardData = Array(20).fill().map(() => Array(20).fill(''));
-    io.emit('resetGame', { boardData, players });
-  });
-*/
+ 
 socket.on('resetGame', ({ roomId }) => {
   const room = rooms[roomId];
   if (!room || !room.players || room.players.length !== 2) return;
@@ -268,16 +268,10 @@ socket.on('resetGame', ({ roomId }) => {
   startTurnTimer(roomId);
 });
 
-  /*
-  socket.on('disconnect', () => {
-    clearInterval(timer);
-    readyPlayers = readyPlayers.filter(p => p !== socket.id);
-    delete players[socket.id];
-    io.emit('updatePlayers', players);
-    gameStarted = false;
-  });
-}); //End of io.on('connection', (socket)
-*/
+socket.on('chatMessage', ({ roomId, name, message, symbol }) => {
+  io.to(roomId).emit('chatMessage', { name, message, symbol });
+});
+
 socket.on('disconnect', () => {
   for (const [roomId, room] of Object.entries(rooms)) {
     const index = room.players.findIndex(p => p.id === socket.id);
@@ -291,31 +285,7 @@ socket.on('disconnect', () => {
   }
 });
 });
-/* 
-Workflow của tính năng Timer:
-Mỗi lượt người chơi có 20 giây.
-Server quản lý timer và gửi thông báo về thời gian còn lại mỗi giây.
-Nếu hết 20 giây mà người chơi chưa đi, server tự động chuyển lượt và thông báo cho cả hai người chơi.
-Frontend hiển thị rõ ràng thời gian còn lại mỗi lượt chơi.
-*/
 
-function startTurnTimer() {
-  clearInterval(timer);
-  let timeLeft = turnTime;
-  io.emit('timerUpdate', { currentPlayer, timeLeft });
-
-  timer = setInterval(() => {
-    timeLeft--;
-    if (timeLeft >= 0) {
-      io.emit('timerUpdate', { currentPlayer, timeLeft });
-    }
-    if (timeLeft === 0) {
-      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
-      io.emit('changeTurn', { currentPlayer });
-      timeLeft = turnTime;
-    }
-  }, 1000);
-}
 /*
 Kiểm tra điều kiện thắng
 Server sau mỗi lượt đánh sẽ kiểm tra thắng/thua bằng cách:
@@ -330,44 +300,7 @@ Frontend hiển thị thông báo người thắng.
                       └─── Chưa thắng ──▶ Tiếp tục chơi
 
 */
-/*
-function checkWin(x, y) {
-  const symbol = boardData[y][x];
-  return (
-    checkDirection(x, y, symbol, 1, 0) ||
-    checkDirection(x, y, symbol, 0, 1) ||
-    checkDirection(x, y, symbol, 1, 1) ||
-    checkDirection(x, y, symbol, 1, -1)
-  );
-}
 
-function checkDirection(x, y, symbol, dx, dy) {
-  let count = 1;
-
-  // kiểm tra chiều thuận
-  for (let i = 1; i < 5; i++) {
-    if (valid(x + i * dx, y + i * dy) && boardData[y + i * dy][x + i * dx] === symbol)
-      count++;
-    else
-      break;
-  }
-
-  // kiểm tra chiều ngược
-  for (let i = 1; i < 5; i++) {
-    if (valid(x - i * dx, y - i * dy) && boardData[y - i * dy][x - i * dx] === symbol)
-      count++;
-    else
-      break;
-  }
-
-  return count >= 5;
-}
-
-function valid(x, y) {
-  return x >= 0 && y >= 0 && x < 20 && y < 20;
-}
-
-*/
 function checkWin(board, x, y, symbol) {
   const directions = [
     [1, 0], [0, 1], [1, 1], [1, -1]
