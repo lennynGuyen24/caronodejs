@@ -30,7 +30,7 @@ function getServerIp() {
 //Return IP server to client
 app.get('/server-info', (req, res) => {
   const ip = getServerIp();
-  res.json({ ip, port: PORT }); // 👈 This is the vid json
+  res.json({ ip, port: PORT }); // 👈 This is the valid json
 });
 
 
@@ -232,4 +232,4 @@ function valid(x, y) {
 http.listen(PORT, () => {
   const ip = getServerIp();
   console.log(`🌐 Server running at: http://${ip}:${PORT}`);
-});
+}); /* Get server IP*/

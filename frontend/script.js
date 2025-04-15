@@ -1,4 +1,5 @@
 //const socket = io('http://localhost:3000'); // Địa chỉ IP của server thay đổi tùy theo get /server-info ở dòng 19
+
 let socket;  // khai báo global biến socket để sử dụng trong các hàm khác
 
 const board = document.getElementById('board');
