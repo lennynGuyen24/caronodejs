@@ -176,9 +176,10 @@ body {
 #room-list li:hover {
   background: #d0d0d0;
 }
+
 #symbol-grid {
   display: grid;
-  grid-template-columns: repeat(10, 1.8em);
+  grid-template-columns: repeat(25, 1.8em);
   gap: 6px;
   justify-content: center;
   margin: 10px auto;
@@ -197,13 +198,13 @@ body {
 .symbol-option:hover::after {
   content: attr(data-tooltip);
   position: absolute;
-  top: -25px;
-  left: 50%;
+  top: -50px;
+  left: 25%;
   transform: translateX(-50%);
   background: #333;
   color: white;
   padding: 2px 5px;
-  font-size: 12px;
+  font-size: 24px;
   border-radius: 3px;
   white-space: nowrap;
   z-index: 100;
@@ -213,6 +214,7 @@ body {
 .symbol-option.selected {
   background: #cce;
   border-color: #99c;
+  font-size: 24px;
 }
 
 .symbol-option.disabled {
@@ -220,23 +222,3 @@ body {
   pointer-events: none;
 }
 
-@media (max-width: 600px) {
-  #board {
-    grid-template-columns: repeat(10, 30px);
-    overflow-x: scroll;
-  }
-  .cell {
-    font-size: 14px;
-    width: 28px;
-    height: 28px;
-  }
-  #chat-input {
-    width: 50%;
-  }
-  #chat-box {
-    width: 95%;
-  }
-  #symbol-grid {
-    grid-template-columns: repeat(5, 1.8em);
-  }
-}

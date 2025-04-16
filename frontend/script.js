@@ -28,12 +28,9 @@ const historyList = document.getElementById('history');
 const roomList = document.getElementById('room-list');
 const selectedSymbolEl = document.getElementById('selected-symbol');
 const symbolGrid = document.getElementById('symbol-grid');
-const playersInfo = document.createElement('div');
-playersInfo.id = 'players-info';
-document.body.insertBefore(playersInfo, board);
+const playersInfo = document.getElementById('players-info');
 
-
-const SYMBOLS = [
+const chessman = [
   '❤️', '💙', '💚', '💛', '💜',
   '⭐', '🌟', '🔥', '💧', '🍀',
   '😊', '😎', '😂', '🥰', '🤖',
@@ -43,7 +40,7 @@ const SYMBOLS = [
 
 function createSymbolSelection() {
   symbolGrid.innerHTML = '';
-  SYMBOLS.forEach(symbol => {
+  chessman.forEach(symbol => {
     const div = document.createElement('div');
     div.className = 'symbol-option';
     div.textContent = symbol;
@@ -55,12 +52,18 @@ function createSymbolSelection() {
         document.querySelectorAll('.symbol-option').forEach(opt => opt.classList.remove('selected'));
         div.classList.add('selected');
         selectedSymbol = symbol;
+        playerSymbol= symbol;
         selectedSymbolEl.textContent = symbol;
       };
     }
     symbolGrid.appendChild(div);
   });
 }
+
+// Hiển thị bảng biểu tượng ngay khi load
+document.addEventListener('DOMContentLoaded', () => {
+  createSymbolSelection();
+});
 
 
 fetch('/server-info')
@@ -72,10 +75,10 @@ fetch('/server-info')
       console.log('Server connected successfully!');
     });
 
-  
-    // Call the socekt.on(...) functions here or call the init function separately
+      // Call the socekt.on(...) functions here or call the init function separately
     //setupSocketEvents();
   
+   
     
     function renderBoard(data) {
       board.innerHTML = '';
@@ -143,7 +146,7 @@ fetch('/server-info')
 
     joinBtn.onclick = () => {
       const name = nameInput.value.trim();
-      if (!pnameInput|| hasJoined) return alert('Please enter your name before joining!!');
+      if (!nameInput|| hasJoined) return alert('Please enter your name before joining!!');
       if (!selectedSymbol) return alert('Chọn biểu tượng trước khi tham gia!');
       if (usedSymbols.includes(selectedSymbol)) return alert('Biểu tượng đã được người khác chọn!');
       playerName = name;
@@ -167,34 +170,20 @@ fetch('/server-info')
 
     // Xử lý chat
     chatInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter' && chatInput.value.trim() !== '' && roomId) {
+      const message = chatInput.value.trim();
+      if (e.key === 'Enter' && message && roomId) {
         socket.emit('chatMessage', { roomId, name: nameInput.value, message, symbol: playerSymbol });
         chatInput.value = '';
       }
     });
 
     socket.on('chatMessage', ({ name, message, symbol }) => {
-      const msgEl = document.createElement('div');
-      msgEl.classList.add('chat-message');
-
-      const userSpan = document.createElement('span');
-      userSpan.textContent = `${name}[${symbol}] `;
-      if (symbol === mySymbol){
-        userSpan.classList.add(`username-x`);
-      } else {
-        userSpan.classList.add(`username-o`);
-      }
-      
-
-      const contentSpan = document.createElement('span');
-      contentSpan.textContent = message;
-
-      msgEl.appendChild(userSpan);
-      msgEl.appendChild(contentSpan);
-      chatWindow.appendChild(msgEl);
-
+      const div = document.createElement('div');
+      div.innerHTML = `<b style="color: ${symbol === 'X' ? 'green' : 'red'}">[${symbol}] ${name}</b>: ${message}`;
+      chatWindow.appendChild(div);
       chatWindow.scrollTop = chatWindow.scrollHeight;
     });
+    
 
     socket.on('startGame', ({ board: boardData, players, currentTurn: turn }) => {
       const me = players.find(p => p.id === socket.id);
@@ -296,6 +285,8 @@ fetch('/server-info')
         socket.emit('resetGame', { roomId });
       }
     };
+  
+  
 
 })
 .catch((err) => {

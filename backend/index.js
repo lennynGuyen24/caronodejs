@@ -112,10 +112,8 @@ io.on('connection', (socket) => {
   Người chơi có thể bắt đầu trò chơi khi có đủ 2 người chơi trong phòng.
   Server gửi thông báo bắt đầu trò chơi cho tất cả người chơi trong phòng.
   */
-   
-  socket.on('joinGame', ({ playerName }) => {
-    if (playerRoomMap[socket.id]) return; // Chỉ cho tạo 1 phòng
-
+  
+  socket.on('createRoom', ({ playerName, symbol }) => {
     const roomId = generateRoomId();
     rooms[roomId] = {
       players: [{ id: socket.id, name: playerName, symbol }],
@@ -126,11 +124,11 @@ io.on('connection', (socket) => {
       history: []
     };
     socket.join(roomId);
-    playerRoomMap[socket.id] = roomId;
     socket.emit('roomCreated', { roomId });
     updateRoomList();
   });
-  
+
+   
   socket.on('playerReady', (name) => {
     if (!readyPlayers.includes(socket.id) && Object.keys(players).length < 2) {
       readyPlayers.push(socket.id);
