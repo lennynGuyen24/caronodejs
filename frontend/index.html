@@ -9,10 +9,16 @@
 </head>
 <body>
   <div style="text-align:center;">
+    <div>
+      <h3>Chọn quân cờ </h3>
+      <div id="symbol-grid"></div>
+      <p>Biểu tượng đã chọn: <span id="selected-symbol"></span></p>
+    </div>
       <div id="player-container">
         <input type="text" id="player-name" placeholder="Type your name">
         <button id="join-btn">Join Game</button>
       </div>
+      
       <h2 id="status">Your name: ?</h2>
       <p id="player-status">Waiting for players to join...</p>
       <h3 id="timer">Time: 20 seconds</h3>
@@ -35,8 +41,7 @@
       <input id="chat-input" placeholder="Type the message and hit Enter" style="padding:8px;">
     </div>
   </div>
-
-
+  
   <script src="script.js"></script>
 </body>
 </html>

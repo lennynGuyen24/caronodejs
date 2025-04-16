@@ -20,7 +20,8 @@ function getServerIp() {
   for (let name in interfaces) {
     for (let iface of interfaces[name]) {
       if (iface.family === 'IPv4' && !iface.internal) {
-        return iface.address;
+        //return iface.address;
+        return '127.0.0.1'; // For testing on localhost
       }
     }
   }
@@ -100,24 +101,6 @@ io.on('connection', (socket) => {
   //socket.emit('init', { boardData, currentPlayer, gameStarted, players });
   socket.emit('winHistory', winHistory);
 
-  socket.on('joinGame', ({ playerName }) => {
-    if (playerRoomMap[socket.id]) return; // Chỉ cho tạo 1 phòng
-
-    const roomId = generateRoomId();
-    rooms[roomId] = {
-      players: [{ id: socket.id, name: playerName, symbol: 'X' }],
-      board: Array(20).fill().map(() => Array(20).fill('')),
-      currentTurn: 'X',
-      started: false,
-      timer: null,
-      history: []
-    };
-    socket.join(roomId);
-    playerRoomMap[socket.id] = roomId;
-    socket.emit('roomCreated', { roomId });
-    updateRoomList();
-  });
-
   /*
   Tạo phòng chơi mới
   Người chơi gửi yêu cầu tạo phòng mới với tên người chơi.
@@ -129,17 +112,23 @@ io.on('connection', (socket) => {
   Người chơi có thể bắt đầu trò chơi khi có đủ 2 người chơi trong phòng.
   Server gửi thông báo bắt đầu trò chơi cho tất cả người chơi trong phòng.
   */
-  socket.on('createRoom', ({ playerName }) => {
-    const roomId = generateRoomId(); // eg: 'abc123'
+   
+  socket.on('joinGame', ({ playerName }) => {
+    if (playerRoomMap[socket.id]) return; // Chỉ cho tạo 1 phòng
+
+    const roomId = generateRoomId();
     rooms[roomId] = {
-      players: [{ id: socket.id, name: playerName, symbol: 'X' }],
+      players: [{ id: socket.id, name: playerName, symbol }],
       board: Array(20).fill().map(() => Array(20).fill('')),
-      currentTurn: 'X',
-      started: false
+      currentTurn: symbol,
+      started: false,
+      timer: null,
+      history: []
     };
     socket.join(roomId);
+    playerRoomMap[socket.id] = roomId;
     socket.emit('roomCreated', { roomId });
-    updateRoomList(); // Gửi danh sách phòng đang chờ tới tất cả client
+    updateRoomList();
   });
   
   socket.on('playerReady', (name) => {
@@ -176,10 +165,14 @@ io.on('connection', (socket) => {
   Server kiểm tra ID phòng có hợp lệ không, nếu hợp lệ thì thêm người chơi vào phòng.
   Server gửi thông báo cho tất cả người chơi trong phòng về người chơi mới tham gia.
   */
-  socket.on('joinRoom', ({ roomId, playerName }) => {
+  socket.on('joinRoom', ({ roomId, playerName, symbol }) => {
     const room = rooms[roomId];
     if (room && room.players.length === 1) {
-      room.players.push({ id: socket.id, name: playerName, symbol: 'O' });
+      if (room.players[0].symbol === symbol) {
+        socket.emit('joinFailed');
+        return;
+      }
+      room.players.push({ id: socket.id, name: playerName, symbol});
       room.started = true;
       socket.join(roomId);
       playerRoomMap[socket.id] = roomId;
@@ -222,25 +215,27 @@ io.on('connection', (socket) => {
     const room = rooms[roomId];
     if (!room || room.board[y][x] !== '') return;
 
-    const symbol = room.currentTurn;
+    const currentPlayer = room.players.find(p => p.symbol === room.currentTurn);
+    if (!currentPlayer) return;
+
+    const symbol = currentPlayer.symbol;
     room.board[y][x] = symbol;
 
     io.to(roomId).emit('moveMade', { x, y, symbol });
 
     if (checkWin(room.board, x, y, symbol)) {
-      const winner = room.players.find(p => p.symbol === symbol);
-      winHistory.unshift({ name: winner.name, symbol });
+      winHistory.unshift({ name: currentPlayer.name, symbol });
       if (winHistory.length > 10) winHistory.pop();
       io.emit('winHistory', winHistory);
 
       io.to(roomId).emit('gameOver', { winner: symbol });
       clearInterval(room.timer);
     } else {
-      room.currentTurn = symbol === 'X' ? 'O' : 'X';
+      const nextPlayer = room.players.find(p => p.symbol !== symbol);
+      room.currentTurn = nextPlayer.symbol;
       startTurnTimer(roomId);
     }
   });
-
 /*
 Reset game
 Người chơi click nút “Chơi lại”.
@@ -252,21 +247,22 @@ Server gửi trạng thái mới về cho tất cả người chơi.
 
   */
  
-socket.on('resetGame', ({ roomId }) => {
-  const room = rooms[roomId];
-  if (!room || !room.players || room.players.length !== 2) return;
+  socket.on('resetGame', ({ roomId }) => {
+    const room = rooms[roomId];
+    if (!room || !room.players || room.players.length !== 2) return;
 
-  room.board = Array(20).fill().map(() => Array(20).fill(''));
-  room.currentTurn = 'X';
-  room.started = true;
+    room.board = Array(20).fill().map(() => Array(20).fill(''));
+    room.currentTurn = room.players[0].symbol;
+    room.started = true;
 
-  io.to(roomId).emit('startGame', {
-    board: room.board,
-    players: room.players,
-    currentTurn: room.currentTurn
+    io.to(roomId).emit('startGame', {
+      board: room.board,
+      players: room.players,
+      currentTurn: room.currentTurn
+    });
+    startTurnTimer(roomId);
   });
-  startTurnTimer(roomId);
-});
+                                
 
 socket.on('chatMessage', ({ roomId, name, message, symbol }) => {
   io.to(roomId).emit('chatMessage', { name, message, symbol });
