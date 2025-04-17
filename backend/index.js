@@ -1,3 +1,16 @@
+let boardData = Array(20).fill().map(() => Array(20).fill(''));
+let currentPlayer = 'X';
+let timer = null;
+let turnTime = 20;
+let readyPlayers = [];
+let gameStarted = false;
+let players = {};
+let winHistory = []; // Global win history list
+
+const rooms = {}; // { roomId: { players: [], board, currentTurn, started, timer, history } }
+const playerRoomMap = {}; // socket.id -> roomId
+
+
 const express = require('express');
 const app = express();
 const http = require('http').createServer(app);
@@ -35,17 +48,6 @@ app.get('/server-info', (req, res) => {
 });
 
 
-let boardData = Array(20).fill().map(() => Array(20).fill(''));
-let currentPlayer = 'X';
-let timer = null;
-let turnTime = 20;
-let readyPlayers = [];
-let gameStarted = false;
-let players = {};
-
-const rooms = {}; // { roomId: { players: [], board, currentTurn, started, timer, history } }
-let winHistory = []; // Global win history list
-const playerRoomMap = {}; // socket.id -> roomId
 
 function generateRoomId() {
   return Math.random().toString(36).substring(2, 8);
@@ -114,8 +116,12 @@ Người chơi 2 ──┘
 */
 
 io.on('connection', (socket) => {
-  //socket.emit('init', { boardData, currentPlayer, gameStarted, players });
+  console.log('Người chơi kết nối:', socket.id);
+
+  socket.emit('init', { boardData});
   socket.emit('winHistory', winHistory);
+
+
 
   /*
   Tạo phòng chơi mới
@@ -185,7 +191,25 @@ io.on('connection', (socket) => {
     io.emit('roomList', availableRooms);
   }
 
+  socket.on('leaveRoom', ({ roomId }) => {
+    const room = rooms[roomId];
+    if (!room) return;
   
+    // Xoá người chơi khỏi danh sách
+    room.players = room.players.filter(p => p.id !== socket.id);
+  
+    // Nếu không còn ai trong phòng thì xoá phòng
+    if (room.players.length === 0) {
+      clearInterval(room.timer);
+      delete rooms[roomId];
+    } else {
+      room.started = false;
+      clearInterval(room.timer);
+    }
+  
+    socket.leave(roomId);
+    updateRoomList();
+  });
   
   /*
    (2) Quá trình chơi

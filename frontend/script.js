@@ -14,6 +14,8 @@ let gameOver = false;
 let joined = false;
 let playerName = '';
 let opponentName = '';
+let myRoomID = null;
+
 
 const board = document.getElementById('board');
 const status = document.getElementById('status');
@@ -77,22 +79,9 @@ fetch('/server-info')
 
   // Call the socekt.on(...) functions here or call the init function separately
    
-  /*
-  function createBoard(boardData) {
-  board.innerHTML = '';
-  for (let y = 0; y < 20; y++) {
-    for (let x = 0; x < 20; x++) {
-      const cell = document.createElement('div');
-      cell.classList.add('cell');
-      cell.dataset.x = x;
-      cell.dataset.y = y;
-      cell.textContent = boardData[y][x];
-      cell.addEventListener('click', handleClick);
-      board.appendChild(cell);
-    }
-  }
-}
-  */
+  socket.on('yourId', (id) => {
+    mySocketId = id;
+  });
    
     
     function renderBoard(data) {
@@ -104,23 +93,17 @@ fetch('/server-info')
           cell.dataset.x = x;
           cell.dataset.y = y;
           cell.textContent = data[y][x];
-          cell.addEventListener('click', handleClick);
+          cell.onclick = () => {
+            if (mySymbol === currentTurn && cell.textContent === '') {
+              socket.emit('playerMove', { roomId, x, y });
+              console.log(' Move:', roomId , x, y);
+            }
+          };
           board.appendChild(cell);
         }
       }
     }
-    // Xử lý sự kiện click vào ô cờ
-    // Chỉ cho phép người chơi thực hiện nước đi nếu lượt của họ
-
-    function handleClick(e) {
-      if (gameOver || playerSymbol !== currentPlayer) return;
-
-      const x = parseInt(e.target.dataset.x);
-      const y = parseInt(e.target.dataset.y);
-      if (playerSymbol === currentTurn && cell.textContent === '') {
-          socket.emit('playerMove', { roomId, x, y });
-      }
-    }
+    
 
     function updatePlayerStatus(players) {
       const playerInfo = Object.values(players).map(p => `${p.name} (${p.symbol})`);
@@ -207,16 +190,10 @@ fetch('/server-info')
       opponentSymbol = opponent.symbol;
       currentTurn = turn;
       status.textContent = `Bạn là ${mySymbol}. Lượt chơi: ${currentTurn}`;
+      playerStatus.textContent = `Phòng đang chơi: ${roomId}`;
       renderBoard(boardData);
     });
-    /*
-      socket.on('moveMade', ({ x, y, symbol }) => {
-      const cell = document.querySelector(`.cell[data-x='${x}'][data-y='${y}']`);
-      cell.textContent = symbol;
-      currentPlayer = symbol === 'X' ? 'O' : 'X';
-      status.textContent = `Bạn là: ${playerSymbol}. Lượt chơi: ${currentPlayer}`;
-    });
-    */ 
+    
     socket.on('moveMade', ({ x, y, symbol }) => {
       const cell = document.querySelector(`.cell[data-x='${x}'][data-y='${y}']`);
       if (cell) {
@@ -228,12 +205,12 @@ fetch('/server-info')
     });
 
     socket.on('gameOver', ({ winner }) => {
-        status.textContent = winner === playerSymbol ? 'Congratulation! You win 🎉!' : 'You lose 😢!';
+        status.textContent = winner === mySymbol ? 'Congratulation! You win 🎉!' : 'You lose 😢!';
         gameOver = true;
         joinBtn.disabled = false;
         playerStatus.textContent = 'Your turn is done.';
       
-        if (winner === playerSymbol) {
+        if (winner === mySymbol) {
           showFireworks(); // Call the fireworks function when the game is over.
         }
     });
@@ -250,8 +227,8 @@ fetch('/server-info')
     });
     
 
-    socket.on('timerUpdate', ({ currentPlayer: turnPlayer, timeLeft }) => {
-      timerDisplay.textContent = `⏱ Time (${turnPlayer}): ${timeLeft} seconds`;
+    socket.on('timerUpdate', ({ currentPlayer: currentTurn, timeLeft }) => {
+      timerDisplay.textContent = `⏱ Time (${currentTurn}): ${timeLeft} seconds`;
     });
 
     socket.on('turnTimeout', ({ currentTurn: turn }) => {
@@ -261,13 +238,13 @@ fetch('/server-info')
     
     socket.on('changeTurn', ({ currentPlayer: nextPlayer }) => {
       currentPlayer = nextPlayer;
-      status.textContent = `You are: ${playerSymbol}. Turn: ${currentPlayer}`;
+      status.textContent = `You are: ${mySymbol}. Turn: ${currentPlayer}`;
     });
 
     socket.on('resetGame', ({ boardData }) => {
       renderBoard(boardData);
       playerSymbol = '';
-      currentPlayer = 'X';
+      currentPlayer = '';
       gameOver = false;
       joinBtn.disabled = false;
       nameInput.disabled = false;
@@ -278,10 +255,30 @@ fetch('/server-info')
       chatWindow.innerHTML = '';
     });
 
+    function createBoard(boardData) {
+      board.innerHTML = '';
+      for (let y = 0; y < 20; y++) {
+        for (let x = 0; x < 20; x++) {
+          const cell = document.createElement('div');
+          cell.classList.add('cell');
+          cell.dataset.x = x;
+          cell.dataset.y = y;
+          cell.textContent = boardData[y][x];
+          board.appendChild(cell);
+        }
+      }
+    }
+    
+    socket.on('init', (data) => {
+      createBoard(data.boardData);
+    });
+
     socket.on('roomCreated', (data) => {
       roomId = data.roomId;
       playerSymbol = data.symbol;;
       status.textContent = 'Đang chờ người khác tham gia...';
+      playerStatus.textContent = `Phòng đang chờ: ${roomId}`;
+      myRoomId= roomId;
     });
 
     socket.on('roomList', (rooms) => {
@@ -289,6 +286,7 @@ fetch('/server-info')
       usedSymbols = rooms.map(r => r.symbol).filter(Boolean); // track in-use symbols
       createSymbolSelection();
       rooms.forEach(room => {
+        
         const li = document.createElement('li');
         li.textContent = `Phòng của ${room.hostName}`;
         li.onclick = () => {
@@ -296,13 +294,26 @@ fetch('/server-info')
           if (!name) return alert('Nhập tên trước!');
           if (!selectedSymbol) return alert('Chọn biểu tượng trước khi tham gia!');
           if (usedSymbols.includes(selectedSymbol)) return alert('Biểu tượng đã được người khác chọn!');
+          // Xóa phòng của người chơi hiện tại nếu có
+          if (roomId) {
+            socket.emit('leaveRoom', { roomId });
+            roomId = null;
+          }
+          // Gửi yêu cầu tham gia phòng mới
           socket.emit('joinRoom', { roomId: room.roomId, playerName: name, symbol: selectedSymbol });
+          roomId = room.roomId;
+          playerStatus.textContent = `Đang chơi tại phòng: ${room.roomId}`;
         };
-        roomList.appendChild(li);
+        // Không hiển thị phòng do chính mình tạo ra
+        if (room.roomId !== myRoomId) {
+          roomList.appendChild(li);
+        }
+        
       });
     });
     
     
+
     resetBtn.onclick = () => {
       if (roomId) {
         socket.emit('resetGame', { roomId });
