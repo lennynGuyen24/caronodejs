@@ -9,12 +9,19 @@ body {
   background-size: 2em;
   background-color: #FFEAC8;
 }
+h3 {
+  margin:0;
+}
+h4 {
+  margin:0;
+}
 
 .board {
   display: grid;
   grid-template-columns: repeat(20, 30px);
   gap: 3px;
   width: fit-content;
+  height: fit-content;
   margin: 0;
   background-color: #F28482;
   border: 15px solid #FF9199;
@@ -170,7 +177,7 @@ body {
   padding: 8px;
   background: #e0e0e0;
   border-radius: 5px;
-  transition: background 0.3s;
+  transition: 0.3s;
 }
 
 #room-list li:hover {
