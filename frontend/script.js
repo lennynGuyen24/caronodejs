@@ -75,9 +75,24 @@ fetch('/server-info')
       console.log('Server connected successfully!');
     });
 
-      // Call the socekt.on(...) functions here or call the init function separately
-    //setupSocketEvents();
-  
+  // Call the socekt.on(...) functions here or call the init function separately
+   
+  /*
+  function createBoard(boardData) {
+  board.innerHTML = '';
+  for (let y = 0; y < 20; y++) {
+    for (let x = 0; x < 20; x++) {
+      const cell = document.createElement('div');
+      cell.classList.add('cell');
+      cell.dataset.x = x;
+      cell.dataset.y = y;
+      cell.textContent = boardData[y][x];
+      cell.addEventListener('click', handleClick);
+      board.appendChild(cell);
+    }
+  }
+}
+  */
    
     
     function renderBoard(data) {
@@ -89,14 +104,21 @@ fetch('/server-info')
           cell.dataset.x = x;
           cell.dataset.y = y;
           cell.textContent = data[y][x];
-          cell.style.color = data[y][x] === 'X' ? 'green' : 'red';
-          cell.onclick = () => {
-            if (playerSymbol === currentTurn && cell.textContent === '') {
-              socket.emit('playerMove', { roomId, x, y });
-            }
-          };
+          cell.addEventListener('click', handleClick);
           board.appendChild(cell);
         }
+      }
+    }
+    // Xử lý sự kiện click vào ô cờ
+    // Chỉ cho phép người chơi thực hiện nước đi nếu lượt của họ
+
+    function handleClick(e) {
+      if (gameOver || playerSymbol !== currentPlayer) return;
+
+      const x = parseInt(e.target.dataset.x);
+      const y = parseInt(e.target.dataset.y);
+      if (playerSymbol === currentTurn && cell.textContent === '') {
+          socket.emit('playerMove', { roomId, x, y });
       }
     }
 
@@ -135,14 +157,7 @@ fetch('/server-info')
       }, 250);
     }
 
-
-    function handleClick(e) {
-      if (gameOver || playerSymbol !== currentPlayer) return;
-
-      const x = parseInt(e.target.dataset.x);
-      const y = parseInt(e.target.dataset.y);
-      socket.emit('playerMove', { roomId, x, y });
-    }
+    
 
     joinBtn.onclick = () => {
       const name = nameInput.value.trim();
@@ -172,14 +187,14 @@ fetch('/server-info')
     chatInput.addEventListener('keypress', (e) => {
       const message = chatInput.value.trim();
       if (e.key === 'Enter' && message && roomId) {
-        socket.emit('chatMessage', { roomId, name: nameInput.value, message, symbol: playerSymbol });
+        socket.emit('chatMessage', { roomId, name: nameInput.value, message, symbol: mySymbol });
         chatInput.value = '';
       }
     });
 
     socket.on('chatMessage', ({ name, message, symbol }) => {
       const div = document.createElement('div');
-      div.innerHTML = `<b style="color: ${symbol === 'X' ? 'green' : 'red'}">[${symbol}] ${name}</b>: ${message}`;
+      div.innerHTML = `<b style="color: ${symbol === mySymbol ? 'green' : 'red'}">[${symbol}] ${name}</b>: ${message}`;
       chatWindow.appendChild(div);
       chatWindow.scrollTop = chatWindow.scrollHeight;
     });
@@ -194,15 +209,22 @@ fetch('/server-info')
       status.textContent = `Bạn là ${mySymbol}. Lượt chơi: ${currentTurn}`;
       renderBoard(boardData);
     });
-
+    /*
+      socket.on('moveMade', ({ x, y, symbol }) => {
+      const cell = document.querySelector(`.cell[data-x='${x}'][data-y='${y}']`);
+      cell.textContent = symbol;
+      currentPlayer = symbol === 'X' ? 'O' : 'X';
+      status.textContent = `Bạn là: ${playerSymbol}. Lượt chơi: ${currentPlayer}`;
+    });
+    */ 
     socket.on('moveMade', ({ x, y, symbol }) => {
       const cell = document.querySelector(`.cell[data-x='${x}'][data-y='${y}']`);
       if (cell) {
         cell.textContent = symbol;
-        cell.style.color = symbol === mySymbol ? 'green' : 'red';
       }
-      currentTurn = symbol === mySymbol ? opponentSymbol : mySymbol;
-      status.textContent = `Lượt chơi: ${currentTurn}`;
+      // Update currentTurn with placeholder (actual symbol change may come from server)
+      currentTurn = symbol === playerSymbol ? opponentSymbol : playerSymbol;
+      status.textContent = `Bạn là: ${playerSymbol}. Lượt chơi: ${currentTurn}`;
     });
 
     socket.on('gameOver', ({ winner }) => {
@@ -234,7 +256,7 @@ fetch('/server-info')
 
     socket.on('turnTimeout', ({ currentTurn: turn }) => {
       currentTurn = turn;
-      status.textContent = `Lượt chơi: ${currentTurn}`;
+      status.textContent = `Bạn là: ${mySymbol}. Lượt chơi: ${currentTurn}`;
     });
     
     socket.on('changeTurn', ({ currentPlayer: nextPlayer }) => {
@@ -258,6 +280,7 @@ fetch('/server-info')
 
     socket.on('roomCreated', (data) => {
       roomId = data.roomId;
+      playerSymbol = data.symbol;;
       status.textContent = 'Đang chờ người khác tham gia...';
     });
 

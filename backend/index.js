@@ -69,19 +69,35 @@ Frontend hiển thị rõ ràng thời gian còn lại mỗi lượt chơi.
 function startTurnTimer(roomId) {
   const room = rooms[roomId];
   if (!room) return;
+
   clearInterval(room.timer);
   let timeLeft = 20;
+
   room.timer = setInterval(() => {
     timeLeft--;
-    io.to(roomId).emit('timerUpdate', { currentTurn: room.currentTurn, timeLeft });
+
+    io.to(roomId).emit('timerUpdate', {
+      currentTurn: room.currentTurn,
+      timeLeft
+    });
+
     if (timeLeft <= 0) {
-      room.currentTurn = room.currentTurn === 'X' ? 'O' : 'X';
-      io.to(roomId).emit('turnTimeout', { currentTurn: room.currentTurn });
-      startTurnTimer(roomId);
+      // Tìm người chơi còn lại
+      const nextPlayer = room.players.find(p => p.symbol !== room.currentTurn);
+      if (nextPlayer) {
+        room.currentTurn = nextPlayer.symbol;
+
+        io.to(roomId).emit('turnTimeout', {
+          currentTurn: room.currentTurn
+        });
+
+        startTurnTimer(roomId);
+      } else {
+        clearInterval(room.timer); // Không còn người để chuyển lượt
+      }
     }
   }, 1000);
 }
-
 
 /*
 (1) Kết nối ban đầu:
@@ -128,35 +144,6 @@ io.on('connection', (socket) => {
     updateRoomList();
   });
 
-   
-  socket.on('playerReady', (name) => {
-    if (!readyPlayers.includes(socket.id) && Object.keys(players).length < 2) {
-      readyPlayers.push(socket.id);
-      const symbol = readyPlayers.length === 1 ? 'X' : 'O';
-      players[socket.id] = { symbol, name };
-    }
-
-    io.emit('updatePlayers', players);
-
-    if (readyPlayers.length === 2) {
-      gameStarted = true;
-      boardData = Array(20).fill().map(() => Array(20).fill(''));
-      currentPlayer = 'X';
-      io.emit('gameStart', { currentPlayer, players });
-      startTurnTimer();
-    }
-  });
-  
- 
-  // Cập nhật danh sách phòng đang chờ
-  function updateRoomList() {
-    const availableRooms = Object.entries(rooms)
-      .filter(([id, r]) => r.players.length === 1 && !r.started)
-      .map(([id, r]) => ({ roomId: id, hostName: r.players[0].name }));
-      
-    io.emit('roomList', availableRooms);
-  }
-
   /*
   Tham gia phòng đã tạo
   Người chơi gửi yêu cầu tham gia phòng với ID phòng và tên người chơi.
@@ -187,6 +174,18 @@ io.on('connection', (socket) => {
     }
   });
   
+    
+ 
+  // Cập nhật danh sách phòng đang chờ
+  function updateRoomList() {
+    const availableRooms = Object.entries(rooms)
+      .filter(([id, r]) => r.players.length === 1 && !r.started)
+      .map(([id, r]) => ({ roomId: id, hostName: r.players[0].name }));
+      
+    io.emit('roomList', availableRooms);
+  }
+
+  
   
   /*
    (2) Quá trình chơi
@@ -208,7 +207,7 @@ io.on('connection', (socket) => {
     Hiển thị kết quả ◀──│                  │
                         │◀─────────────────│ Hiển thị kết quả
 
-  */
+   */
   socket.on('playerMove', ({ roomId, x, y }) => {
     const room = rooms[roomId];
     if (!room || room.board[y][x] !== '') return;
