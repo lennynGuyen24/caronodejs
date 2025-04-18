@@ -118,7 +118,7 @@ Người chơi 2 ──┘
 */
 
 io.on('connection', (socket) => {
-  
+// connect all socket.on
 
   socket.emit('init', { boardData});
   socket.emit('winHistory', winHistory);
@@ -149,7 +149,7 @@ io.on('connection', (socket) => {
     };
     socket.join(roomId);
     socket.emit('roomCreated', { roomId });
-    console.log('[',rooms[roomId].players[0].symbol,']', playerName, ' kết nối socket.id: ', socket.id, ' tạo phòng: ', roomId);
+    console.log('[',rooms[roomId].players[0].symbol,']', playerName, ' has connected socket.id: ', socket.id, ' has created room: ', roomId);
     updateRoomList();
   });
 
@@ -178,7 +178,7 @@ io.on('connection', (socket) => {
       });
       updateRoomList();
       startTurnTimer(roomId);
-      console.log('[',rooms[roomId].players[1].symbol,']',playerName, ' join phòng socket.id: ', socket.id, ' vào phòng: ', roomId);
+      console.log('[',rooms[roomId].players[1].symbol,']',playerName, ' has joined room socket.id: ', socket.id, ' has joined room: ', roomId);
     } else {
       socket.emit('joinFailed');
     }

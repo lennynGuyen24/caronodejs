@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Tic-Tac-Toe</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script> <!-- Hiệu ứng pháo hoa -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script> <!-- Fireworks effect -->
 </head>
 <body>
   <div style="text-align:center;">
@@ -24,10 +24,10 @@
       <p id="player-status">Waiting for players to join...</p>
       <h3 id="timer">Time: 20 seconds</h3>
   </div>
-  <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 20px;">
+  <div class="all-container">
     <!-- Rooms -->
-    <div style="min-width: 10vmin;">
-      <h3>⛺Room's list</h3>
+    <div class="roomstat">
+      <h3>Room's list</h3>
       <ul id="room-list"></ul>
       <div id="history"></div>
     </div>
@@ -38,9 +38,9 @@
       <button id="reset-btn">Play Again</button>
     </div>
     <!--Conversation chatting -->
-    <div id="chat-container" style="margin-left:20px; width:300px; display:flex; flex-direction:column;">
-      <div id="chat-window" style="flex:1; border:1px solid #ccc; padding:10px; overflow:auto; height:600px;"></div>
-      <input id="chat-input" placeholder="Type the message and hit Enter" style="padding:8px;">
+    <div id="chat-container">
+      <div id="chat-window" ></div>
+      <input id="chat-input" placeholder="Type the message and hit Enter" >
     </div>
   </div>
   
