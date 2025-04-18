@@ -66,6 +66,23 @@ Mỗi lượt người chơi có 20 giây.
 Server quản lý timer và gửi thông báo về thời gian còn lại mỗi giây.
 Nếu hết 20 giây mà người chơi chưa đi, server tự động chuyển lượt và thông báo cho cả hai người chơi.
 Frontend hiển thị rõ ràng thời gian còn lại mỗi lượt chơi.
+function startTurnTimer() {
+  clearInterval(timer);
+  let timeLeft = turnTime;
+  io.emit('timerUpdate', { currentPlayer, timeLeft });
+
+  timer = setInterval(() => {
+    timeLeft--;
+    if (timeLeft >= 0) {
+      io.emit('timerUpdate', { currentPlayer, timeLeft });
+    }
+    if (timeLeft === 0) {
+      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+      io.emit('changeTurn', { currentPlayer });
+      timeLeft = turnTime;
+    }
+  }, 1000);
+}
 */
 
 function startTurnTimer(roomId) {
@@ -77,26 +94,11 @@ function startTurnTimer(roomId) {
 
   room.timer = setInterval(() => {
     timeLeft--;
-
-    io.to(roomId).emit('timerUpdate', {
-      currentTurn: room.currentTurn,
-      timeLeft
-    });
-
+    io.to(roomId).emit('timerUpdate', { currentTurn: room.currentTurn, timeLeft });
     if (timeLeft <= 0) {
-      // Tìm người chơi còn lại
-      const nextPlayer = room.players.find(p => p.symbol !== room.currentTurn);
-      if (nextPlayer) {
-        room.currentTurn = nextPlayer.symbol;
-
-        io.to(roomId).emit('turnTimeout', {
-          currentTurn: room.currentTurn
-        });
-
-        startTurnTimer(roomId);
-      } else {
-        clearInterval(room.timer); // Không còn người để chuyển lượt
-      }
+      room.currentTurn = room.players.find(p => p.symbol !== room.currentTurn).symbol;
+      io.to(roomId).emit('turnTimeout', { currentTurn: room.currentTurn });
+      startTurnTimer(roomId);
     }
   }, 1000);
 }
@@ -116,7 +118,7 @@ Người chơi 2 ──┘
 */
 
 io.on('connection', (socket) => {
-  console.log('Người chơi kết nối:', socket.id);
+  
 
   socket.emit('init', { boardData});
   socket.emit('winHistory', winHistory);
@@ -147,6 +149,7 @@ io.on('connection', (socket) => {
     };
     socket.join(roomId);
     socket.emit('roomCreated', { roomId });
+    console.log('[',rooms[roomId].players[0].symbol,']', playerName, ' kết nối socket.id: ', socket.id, ' tạo phòng: ', roomId);
     updateRoomList();
   });
 
@@ -175,6 +178,7 @@ io.on('connection', (socket) => {
       });
       updateRoomList();
       startTurnTimer(roomId);
+      console.log('[',rooms[roomId].players[1].symbol,']',playerName, ' join phòng socket.id: ', socket.id, ' vào phòng: ', roomId);
     } else {
       socket.emit('joinFailed');
     }
@@ -232,31 +236,36 @@ io.on('connection', (socket) => {
                         │◀─────────────────│ Hiển thị kết quả
 
    */
-  socket.on('playerMove', ({ roomId, x, y }) => {
-    const room = rooms[roomId];
-    if (!room || room.board[y][x] !== '') return;
-
-    const currentPlayer = room.players.find(p => p.symbol === room.currentTurn);
-    if (!currentPlayer) return;
-
-    const symbol = currentPlayer.symbol;
-    room.board[y][x] = symbol;
-
-    io.to(roomId).emit('moveMade', { x, y, symbol });
-
-    if (checkWin(room.board, x, y, symbol)) {
-      winHistory.unshift({ name: currentPlayer.name, symbol });
-      if (winHistory.length > 10) winHistory.pop();
-      io.emit('winHistory', winHistory);
-
-      io.to(roomId).emit('gameOver', { winner: symbol });
-      clearInterval(room.timer);
-    } else {
-      const nextPlayer = room.players.find(p => p.symbol !== symbol);
-      room.currentTurn = nextPlayer.symbol;
-      startTurnTimer(roomId);
-    }
-  });
+  
+    socket.on('playerMove', ({ roomId, x, y }) => {
+      const room = rooms[roomId];
+      if (!room || room.board[y][x] !== '') return;
+  
+      const symbol = room.currentTurn;
+      const currentPlayer = room.players.find(p => p.symbol === symbol);
+      if (!currentPlayer) return;
+  
+      room.board[y][x] = symbol;
+  
+      io.to(roomId).emit('moveMade', { x, y, symbol, nextTurn: null });
+  
+      if (checkWin(room.board, x, y, symbol)) {
+        const winner = room.players.find(p => p.symbol === symbol);
+        winHistory.unshift({ name: winner.name, symbol });
+        if (winHistory.length > 10) winHistory.pop();
+        io.emit('winHistory', winHistory);
+  
+        io.to(roomId).emit('gameOver', { winner: symbol });
+        clearInterval(room.timer);
+      } else {
+        const nextPlayer = room.players.find(p => p.symbol !== symbol);
+        if (nextPlayer) {
+          room.currentTurn = nextPlayer.symbol;
+          io.to(roomId).emit('moveMade', { x, y, symbol, nextTurn: room.currentTurn });
+        }
+        startTurnTimer(roomId);
+      }
+    });
 /*
 Reset game
 Người chơi click nút “Chơi lại”.

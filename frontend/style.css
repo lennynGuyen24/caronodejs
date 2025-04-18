@@ -175,22 +175,24 @@ h4 {
   cursor: pointer;
   margin: 5px 0;
   padding: 8px;
-  background: #e0e0e0;
+  background: #7df0a7;
   border-radius: 5px;
   transition: 0.3s;
 }
 
 #room-list li:hover {
   background: #d0d0d0;
+  border: 5px solid #f36b68;
 }
 
 #symbol-grid {
   display: grid;
-  grid-template-columns: repeat(25, 1.8em);
+  grid-template-columns: repeat(25, 2em);
   gap: 6px;
   justify-content: center;
   margin: 10px auto;
-  max-width: 480px;
+  max-width: 1024px;
+  background: #F28482;
 }
 
 .symbol-option {
@@ -205,23 +207,22 @@ h4 {
 .symbol-option:hover::after {
   content: attr(data-tooltip);
   position: absolute;
-  top: -50px;
+  bottom: -50px;
   left: 25%;
   transform: translateX(-50%);
-  background: #333;
+  background: #043e6e;
   color: white;
   padding: 2px 5px;
-  font-size: 24px;
-  border-radius: 3px;
+  font-size: 32px;
+  border-radius: 5px;
   white-space: nowrap;
-  z-index: 100;
+  z-index: 50;
 }
 
 .symbol-option:hover,
 .symbol-option.selected {
-  background: #cce;
-  border-color: #99c;
-  font-size: 24px;
+  background: #043e6e;
+ font-size: 18px;
 }
 
 .symbol-option.disabled {

@@ -32,12 +32,13 @@ const selectedSymbolEl = document.getElementById('selected-symbol');
 const symbolGrid = document.getElementById('symbol-grid');
 const playersInfo = document.getElementById('players-info');
 
+//https://www.w3schools.com/charsets/ref_emoji_smileys.asp
 const chessman = [
-  '❤️', '💙', '💚', '💛', '💜',
-  '⭐', '🌟', '🔥', '💧', '🍀',
+  '😸', '⛵', '👿', '🤬', '😱',
+  '⚽', '🙀', '🔥', '☕', '🍀',
   '😊', '😎', '😂', '🥰', '🤖',
-  '🎯', '👑', '👽', '👻', '🎉',
-  '🐱', '🐶', '🐼', '🦊', '🐸'
+  '🎯', '💀', '👽', '👻', '🙈',
+  '🐱', '🐶', '😻', '🦊', '🐸'
 ];
 
 function createSymbolSelection() {
@@ -194,16 +195,15 @@ fetch('/server-info')
       renderBoard(boardData);
     });
     
-    socket.on('moveMade', ({ x, y, symbol }) => {
+    socket.on('moveMade', ({ x, y, symbol, nextTurn }) => {
       const cell = document.querySelector(`.cell[data-x='${x}'][data-y='${y}']`);
       if (cell) {
         cell.textContent = symbol;
       }
-      // Update currentTurn with placeholder (actual symbol change may come from server)
-      currentTurn = symbol === playerSymbol ? opponentSymbol : playerSymbol;
-      status.textContent = `You are: ${playerSymbol}. Turn: ${currentTurn}`;
+      currentTurn = nextTurn;
+      status.textContent = `You are: ${mySymbol}. Turn: ${currentTurn}`;
     });
-
+    
     socket.on('gameOver', ({ winner }) => {
         status.textContent = winner === mySymbol ? 'Congratulation! You win 🎉!' : 'You lose 😢!';
         gameOver = true;
