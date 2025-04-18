@@ -33,8 +33,8 @@ function getServerIp() {
   for (let name in interfaces) {
     for (let iface of interfaces[name]) {
       if (iface.family === 'IPv4' && !iface.internal) {
-        //return iface.address;
-        return '127.0.0.1'; // For testing on localhost
+        return iface.address;
+        //return '127.0.0.1'; // For testing on localhost
       }
     }
   }
@@ -86,7 +86,7 @@ function startTurnTimer() {
 */
 
 function startTurnTimer(roomId) {
-  const room = rooms[roomId];
+  const room = rooms[roomId]; 
   if (!room) return;
 
   clearInterval(room.timer);

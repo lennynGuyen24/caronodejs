@@ -227,7 +227,7 @@ fetch('/server-info')
     });
     
 
-    socket.on('timerUpdate', ({ currentPlayer: currentTurn, timeLeft }) => {
+    socket.on('timerUpdate', ({ currentTurn: currentTurn, timeLeft }) => {
       timerDisplay.textContent = `⏱ Time (${currentTurn}): ${timeLeft} seconds`;
     });
 
