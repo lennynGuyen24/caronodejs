@@ -2,12 +2,12 @@ body {
   font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
   background-image: url(./medi/heartpattern.png);
   background-position: center center;
   background-size: 2em;
   background-color: #FFEAC8;
+  align-items: center;
 }
 h3 {
   text-align: center;
@@ -87,8 +87,8 @@ h4 {
 #chat-container{
   display: flex;
   flex-direction: column;
-  width: 300px;
-  height: 611px; /* similar the height of the board */
+  width: 200px;
+  height: fit-content; /* similar the height of the board */
   border: 9px solid #FF9199; 
   border-radius: 0.6em;
 }
@@ -149,9 +149,15 @@ h4 {
   border: 2px solid #F28482;
   
 }
-#player-name:focus {
+#player-name:focus  {
   border: 4px solid #f36b68;
   outline: none;
+}
+#player-name:disabled {
+  background-color: hwb(37 78% 0%);
+  font-weight: 700;
+  color: #f36b68;
+  
 }
 
 #join-btn {
@@ -173,9 +179,9 @@ h4 {
 .all-container{
   display: flex; 
   flex-wrap: wrap;
-  justify-content: center;
   gap: 10px; 
   margin-top: 20px; 
+  align-content: center;
 }
 #player-status {
   font-size: 14px;
@@ -191,10 +197,19 @@ h4 {
   border: 0.3em solid #FF9199;
   background-color: #FFEAC8;
   border-radius: 0.6em;
-  min-width: 10vmin;
+  min-width: 6vmin;
   justify-content: center;
   padding: 0.5em 0.5em;
+  height: fit-content;
   
+}
+.history{
+  border: 0.3em solid #FF9199;
+  background-color: #FFEAC8;
+  border-radius: 0.6em;
+  min-width: 5vmin;
+  justify-content: center;
+  padding: 0.5em 0.5em;
 }
 
 #room-list {
@@ -227,6 +242,7 @@ h4 {
   max-width: 1024px;
   background: #F28482;
   border-radius: 0.6em;
+  padding: 0.3em;
 }
 
 .symbol-option {

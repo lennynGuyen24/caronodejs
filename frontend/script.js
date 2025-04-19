@@ -34,11 +34,11 @@ const playersInfo = document.getElementById('players-info');
 
 //https://www.w3schools.com/charsets/ref_emoji_smileys.asp
 const chessman = [
-  '😸', '⛵', '👿', '🤬', '😱',
-  '⚽', '🙀', '🔥', '☕', '🍀',
-  '😊', '😎', '😂', '🥰', '🤖',
-  '🎯', '💀', '👽', '👻', '🙈',
-  '🐱', '🐶', '😻', '🦊', '🐸'
+  '😸', '🐰', '👿', '🍆', '🐟',
+  '🐝', '🎃', '🐼', '🐇', '🐧',
+  '🐲', '🌭', '🐦', '🌼', '🦠',
+  '🦄', '💀', '👽', '👻', '⛄',
+  '🐔', '🐳', '🦉', '🦊', '🐸'
 ];
 
 function createSymbolSelection() {
@@ -222,7 +222,7 @@ fetch('/server-info')
     });
     
     socket.on('winHistory', (history) => {
-      historyList.innerHTML = '<h4>Recent Winner:</h4>' +
+      historyList.innerHTML = '<h4>Recent winner</h4>' +
         history.map(h => `<div>[${h.symbol}] ${h.name}</div>`).join('');
     });
     
