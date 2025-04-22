@@ -1,0 +1,14 @@
+runtime: nodejs18
+
+instance_class: F1  # nhỏ nhất, giá rẻ
+
+env_variables:
+  NODE_ENV: 'production'
+
+handlers:
+  - url: /socket.io
+    script: auto
+
+  - url: /(.*)
+    static_files: public/\1
+    upload: public/(.*)
