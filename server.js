@@ -16,7 +16,7 @@ const app = express();
 const http = require('http').createServer(app);
 const path = require('path');
 const os = require('os'); // Thư viện để lấy thông tin hệ thống
-const PORT = 3000;// Thay đổi cổng nếu cần thiết
+const PORT = 80;// Thay đổi cổng nếu cần thiết
 
 
 const cors = require('cors');
@@ -45,7 +45,8 @@ function getServerIp() {
 
 //Return IP server to client
 app.get('/server-info', (req, res) => {
-  const ip = getServerIp();
+  //const ip = getServerIp();
+  const ip = 'ec2-3-106-206-22.ap-southeast-2.compute.amazonaws.com';
   res.json({ ip, port: PORT }); // 👈 This is the valid json
 });
 
@@ -350,9 +351,9 @@ function checkWin(board, x, y, symbol) {
 }
 
 
-http.listen(PORT, () => {
+http.listen (PORT, '0.0.0.0', () => {
   const ip = getServerIp();
-  console.log(`🌐 Server running at: http://${ip}:${PORT}`);
+  console.log(`🌐 Server listening on port: ${PORT}`);
 
 }); // Get server IP
 

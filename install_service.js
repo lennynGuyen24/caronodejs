@@ -16,10 +16,10 @@ const Service = require('node-windows').Service;
 const svc = new Service({
   name: 'CaroNodeJSService', // Tên dịch vụ
   description: 'Chạy ứng dụng Node.js như một Windows Service',
-  script: 'D:\\caronodejs_git\\server.js', // Thay bằng đường dẫn thực tế
+  script: 'C:\\Users\\Administrator\\Documents\\GitHub\\caronodejs\\server.js', // Thay bằng đường dẫn thực tế
   nodeOptions: [
     '--harmony',
-    '--max_old_space_size=4096' // nếu muốn tăng giới hạn RAM
+    '--max_old_space_size=2048' // nếu muốn tăng giới hạn RAM
   ]
 });
 

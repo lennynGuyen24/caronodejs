@@ -1,0 +1,82 @@
+2025-04-25 17:38:36 - Starting C:\Program Files\nodejs\node.exe  --harmony --max_old_space_size=2048 C:\Users\Administrator\Documents\GitHub\caronodejs\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\Documents\GitHub\caronodejs\server.js --scriptoptions= --log "CaroNodeJSService wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2025-04-25 17:38:36 - Started 5952
+2025-04-25 18:17:19 - Stopping caronodejsservice.exe
+2025-04-25 18:17:19 - ProcessKill 5952
+2025-04-25 18:17:20 - Found child process: 5168 Name: conhost.exe
+2025-04-25 18:17:20 - Found child process: 3304 Name: node.exe
+2025-04-25 18:17:20 - Stopping process 5168
+2025-04-25 18:17:20 - Send SIGINT 5168
+2025-04-25 18:17:20 - SIGINT to 5168 failed - Killing as fallback
+2025-04-25 18:17:20 - Stopping process 3304
+2025-04-25 18:17:20 - Send SIGINT 3304
+2025-04-25 18:17:20 - SIGINT to 3304 failed - Killing as fallback
+2025-04-25 18:17:20 - Stopping process 5952
+2025-04-25 18:17:20 - Send SIGINT 5952
+2025-04-25 18:17:20 - SIGINT to 5952 failed - Killing as fallback
+2025-04-25 18:17:20 - Finished caronodejsservice.exe
+2025-04-25 18:17:26 - Starting C:\Program Files\nodejs\node.exe  --harmony --max_old_space_size=2048 C:\Users\Administrator\Documents\GitHub\caronodejs\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\Documents\GitHub\caronodejs\server.js --scriptoptions= --log "CaroNodeJSService wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2025-04-25 18:17:26 - Started 2200
+2025-04-25 18:20:36 - Stopping caronodejsservice.exe
+2025-04-25 18:20:36 - ProcessKill 2200
+2025-04-25 18:20:36 - Found child process: 6112 Name: conhost.exe
+2025-04-25 18:20:36 - Found child process: 4668 Name: node.exe
+2025-04-25 18:20:36 - Stopping process 6112
+2025-04-25 18:20:36 - Send SIGINT 6112
+2025-04-25 18:20:36 - SIGINT to 6112 failed - Killing as fallback
+2025-04-25 18:20:36 - Stopping process 4668
+2025-04-25 18:20:36 - Send SIGINT 4668
+2025-04-25 18:20:36 - SIGINT to 4668 failed - Killing as fallback
+2025-04-25 18:20:36 - Stopping process 2200
+2025-04-25 18:20:36 - Send SIGINT 2200
+2025-04-25 18:20:36 - SIGINT to 2200 failed - Killing as fallback
+2025-04-25 18:20:36 - Finished caronodejsservice.exe
+2025-04-25 18:30:55 - Starting C:\Program Files\nodejs\node.exe  --harmony --max_old_space_size=2048 C:\Users\Administrator\Documents\GitHub\caronodejs\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\Documents\GitHub\caronodejs\server.js --scriptoptions= --log "CaroNodeJSService wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2025-04-25 18:30:55 - Started 2780
+2025-04-25 18:34:03 - Stopping caronodejsservice.exe
+2025-04-25 18:34:03 - ProcessKill 2780
+2025-04-25 18:34:03 - Found child process: 2444 Name: conhost.exe
+2025-04-25 18:34:03 - Found child process: 5148 Name: node.exe
+2025-04-25 18:34:03 - Stopping process 2444
+2025-04-25 18:34:03 - Send SIGINT 2444
+2025-04-25 18:34:03 - SIGINT to 2444 failed - Killing as fallback
+2025-04-25 18:34:04 - Stopping process 5148
+2025-04-25 18:34:04 - Send SIGINT 5148
+2025-04-25 18:34:04 - SIGINT to 5148 failed - Killing as fallback
+2025-04-25 18:34:04 - Stopping process 2780
+2025-04-25 18:34:04 - Send SIGINT 2780
+2025-04-25 18:34:04 - SIGINT to 2780 failed - Killing as fallback
+2025-04-25 18:34:04 - Finished caronodejsservice.exe
+2025-04-25 18:34:08 - Starting C:\Program Files\nodejs\node.exe  --harmony --max_old_space_size=2048 C:\Users\Administrator\Documents\GitHub\caronodejs\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\Documents\GitHub\caronodejs\server.js --scriptoptions= --log "CaroNodeJSService wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2025-04-25 18:34:08 - Started 4276
+2025-04-25 18:34:19 - Stopping caronodejsservice.exe
+2025-04-25 18:34:19 - ProcessKill 4276
+2025-04-25 18:34:19 - Found child process: 5596 Name: conhost.exe
+2025-04-25 18:34:19 - Found child process: 3936 Name: node.exe
+2025-04-25 18:34:19 - Stopping process 5596
+2025-04-25 18:34:19 - Send SIGINT 5596
+2025-04-25 18:34:19 - SIGINT to 5596 failed - Killing as fallback
+2025-04-25 18:34:19 - Stopping process 3936
+2025-04-25 18:34:20 - Send SIGINT 3936
+2025-04-25 18:34:20 - SIGINT to 3936 failed - Killing as fallback
+2025-04-25 18:34:20 - Stopping process 4276
+2025-04-25 18:34:20 - Send SIGINT 4276
+2025-04-25 18:34:20 - SIGINT to 4276 failed - Killing as fallback
+2025-04-25 18:34:20 - Finished caronodejsservice.exe
+2025-04-25 18:34:44 - Starting C:\Program Files\nodejs\node.exe  --harmony --max_old_space_size=2048 C:\Users\Administrator\Documents\GitHub\caronodejs\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\Documents\GitHub\caronodejs\server.js --scriptoptions= --log "CaroNodeJSService wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2025-04-25 18:34:44 - Started 972
+2025-04-25 18:38:33 - Stopping caronodejsservice.exe
+2025-04-25 18:38:33 - ProcessKill 972
+2025-04-25 18:38:33 - Found child process: 2728 Name: conhost.exe
+2025-04-25 18:38:33 - Found child process: 5548 Name: node.exe
+2025-04-25 18:38:33 - Stopping process 2728
+2025-04-25 18:38:33 - Send SIGINT 2728
+2025-04-25 18:38:33 - SIGINT to 2728 failed - Killing as fallback
+2025-04-25 18:38:33 - Stopping process 5548
+2025-04-25 18:38:33 - Send SIGINT 5548
+2025-04-25 18:38:33 - SIGINT to 5548 failed - Killing as fallback
+2025-04-25 18:38:33 - Stopping process 972
+2025-04-25 18:38:33 - Send SIGINT 972
+2025-04-25 18:38:33 - SIGINT to 972 failed - Killing as fallback
+2025-04-25 18:38:33 - Finished caronodejsservice.exe
+2025-04-25 18:38:49 - Starting C:\Program Files\nodejs\node.exe  --harmony --max_old_space_size=2048 C:\Users\Administrator\Documents\GitHub\caronodejs\node_modules\node-windows\lib\wrapper.js --file C:\Users\Administrator\Documents\GitHub\caronodejs\server.js --scriptoptions= --log "CaroNodeJSService wrapper" --grow 0.25 --wait 1 --maxrestarts 3 --abortonerror n --stopparentfirst undefined
+2025-04-25 18:38:50 - Started 3228
